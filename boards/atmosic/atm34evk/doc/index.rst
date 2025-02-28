@@ -1,85 +1,51 @@
 .. _atm34evk:
 
+###############
 Atmosic ATM34xx
 ###############
 
+********
 Overview
 ********
-The ATM34 and ATM34e are members of the new ATM34/e series that supports both Bluetooth LE and/or 802.15.4 for highly robust command/control or home automation type protocols.
-The SoC family integrates the radio along with an ARM® Cortex® M33F application processor, up to 256 KB Random Access Memory (RAM), 64 KB Read-Only Memory (ROM), 512-1536 KB of nonvolatile memory (NVM). The family also supports the ARM® TrustZone® enabled security features, and state-of-the-art power management to enable maximum lifetime in battery-operated devices and integrated energy harvesting capabilities.
+
+The ATM34/e Wireless SoC Series is part of the Atmosic family of extremely low-power Bluetooth® system-on-chip (SoC) solutions. ATM34/e integrates a Bluetooth 6.0 compliant radio, ARM® Cortex® M33F application processor with ARM® TrustZone® enabled security features, and state-of-the-art power management to enable maximum lifetime in battery-operated devices.
+For detailed product specifications and features, please refer to https://atmosic.com/products_atm34/.
+
+*************
+SoCs and EVKs
+*************
+
+.. _board:
 
 
-The extremely low power ATM34 and ATM34e series SoCs, with a 0.95 mA radio receiver and a 2.1 mA radio transmitter power consumption, is designed to extend battery life for the Internet-of-Things (IoT) markets. Support for low duty cycle operation allows systems to run for significantly longer periods without battery replacement. In addition, this series of SoCs from Atmosic supports operation from energy harvesting sources, including RF, photovoltaic, TEG (Thermoelectric generator), and motion.  Innovative wake-up mechanisms are supported to provide options for further power consumption reduction.
+==================  ==================  ==================  ==================  ========  ==========
+SoC Part #          EVK Part #          Board List          On-chip             Package   Energy 
+                                        <BOARD>             Flash                         Harvesting
+==================  ==================  ==================  ==================  ========  ==========
+ATM3405-2PCAQK      ATMEVK-3405-PQK-2   ATMEVK-3405-PQK-2   512KB               QFN 5x5   
+ATM3425-2PCAQK      ATMEVK-3425-PQK-2   ATMEVK-3425-PQK-2   512KB               QFN 5x5   
+ATM3430e-2WCAQN     ATMEVK-3430E-WQN-2  ATMEVK-3430e-WQN-2  1536KB              QFN 7x7   x 
+==================  ==================  ==================  ==================  ========  ==========
 
+================
+Pin Multiplexing
+================
 
-Hardware Features
-*****************
-Bluetooth LE
-  - Bluetooth Low-Energy 5.4 compliant
-  - 2 Mbps, 1 Mbps 500 kbps, and 125 kbps Coded PHY rates
-  - 802.15.4 Support for Thread, Matter and Zigbee
-MCU and Memory
-  - 64 MHz ARM® Cortex® M33F MCU with DSP
-  - 64 KB ROM, 256 KB RAM, 512-1536 KB NVM
-  - Retention RAM configuration: 16 KB to 256 KB in 16 KB step sizes
-  - 16 MHz / Optional 32.768 kHz Crystal Oscillator
-Security
-  - ARM® TrustZone®,  HW Root of Trust, Secure Boot, Secure Execution & Debug
-  - AES-128/256, SHA-2/HMAC 256 Encryption/Cryptographic Hardware Accelerators
-  - True random number generator (TRNG)
-Energy Harvesting (ATM34e)
-  - On-chip RF Energy Harvesting
-  - Supports photovoltaic, thermal, motion and other energy harvesting technologies
-  - External Harvesting/Storage Interface
-RF and Power Management
-  - Fully integrated RF front-end
-  - Sensor Hub
-  - RF Wakeup Receiver
-  - 1.1 V to 4.2 V battery input voltage with integrated Power Management Unit (PMU)
-  - Radio power consumption with 3 V battery
-    - Rx @ -97 dBm: 0.95 mA
-    - Tx @ 0 dBm: 2.5 mA
-  - SoC typical power consumption with 3 V battery including PMU
-    - Retention @ 32 KB RAM: 1.9 µA
-    - Hibernate: 1.3 µA
-    - SoC Off: 500 nA
-    - SoC Off with Harvesting Enabled: 800 nA
-Interfaces
-  - I2C (2), I2S, SPI (2), UART (2), PWM (8), GPIOs (21 or 31 depending on the package option)
-  - Quad SPI
-  - 16-bit application ADC, 4 external, 5 internal channels, up to 2 Msps
-  - Two mono or one stereo Digital microphone inputs (PDM)
-  - 8 x 20 Keyboard matrix controller (KSM)
-  - Quadrature decoder (QDEC)
-  - SWD for Interactive Debugging
-Package Options
-  - ATM3430e: 7x7 mm, 56-pin QFN (up to 31 GPIOs)
-  - ATM3430: 7x7 mm, 56-pin QFN (up to 31 GPIOs)
-  - ATM3425: 5x5 mm, 40-pin QFN (up to 21 GPIOs)
-  - ATM3405: 5x5 mm, 40-pin QFN (up to 21 GPIOs) (BLE only; No 15.4)
+The PinMux tool provides a graphical interface to summarize the mapping between Px pins and their supported functionalities. 
+It is available at https://atmosic.com/public/Pinmux/index.html for all Atmosic Wireless SoCs.
 
-
-.. _boards:
-
-Boards
-======
-* ATMEVK-3405-PQK-2
-* ATMEVK-3425-PQK-2
-* ATMEVK-3430e-WQN-2
-
-
+***************
 Getting Started
 ***************
 
 Follow the instructions_ from the official Zephyr documentation on how to get started.
 
-
-
+=============================
 Connecting an ATMEVK on Linux
 =============================
 
 Special udev and group permissions are required by OpenOCD, which is the primary
-debugger used to interface with Atmosic EVKs, in order to access the USB FTDI
+debugger used to interface with Atmosic EVKs, to access the USB FTDI
 SWD interface or J-Link OB.  When following Step 4 "Install udev rules, which
 allow you ..." for Ubuntu_, add the following line to
 `60-openocd.rules`::
@@ -90,14 +56,15 @@ allow you ..." for Ubuntu_, add the following line to
 
 .. _instructions: https://docs.zephyrproject.org/3.7.0/develop/getting_started/index.html
 
+===============================
 Connecting an ATMEVK on Windows
 ===============================
 
-The J-Link OB device driver must be replaced with WinUSB in order for it to
+The J-Link OB device driver must be replaced with the WinUSB driver to
 become available as a USB device and usable by OpenOCD.
 This can be done using Zadig.
 
-Windows Administrator privileges are required for replacing a driver.
+Windows Administrator privileges are required to replace the driver.
 
 Zadig can be obtained from:
 
@@ -118,70 +85,152 @@ To replace the driver:
 #. Click "Replace Driver"
 
 Verify the successful installation of WinUSB by going to the Windows
-Device Manager and confirming that the "BULK interface" shows
-as such rather than "J-Link driver".  (In Device Manager, expand category
+Device Manager and confirm that the "BULK interface" shows
+as such rather than the "J-Link driver".  (In Device Manager, expand the category
 "Universal Serial Bus devices" and look for "BULK interface".)
 
-
+*************************
 Programming and Debugging
 *************************
 
-It is recommended that we set environment variables ZEPHYR_TOOLCHAIN_VARIANT to zephyr and ZEPHYR_SDK_INSTALL_DIR to the directory where Zephyr SDK is installed. For example, assuming you installed SDK version 0.16.8  in your home directory, for reference, it will be like this in a bash shell environment: (use ``setenv`` in a C shell environment)::
+It is recommended to set the environment variables ZEPHYR_TOOLCHAIN_VARIANT to ``zephyr`` and ZEPHYR_SDK_INSTALL_DIR to the directory where Zephyr SDK is installed. For example, assuming the installed SDK version 0.16.8 is in the home directory, for reference, it will be like this in a bash shell environment: (use ``setenv`` in a C shell environment, or ``set`` for Windows)::
 
-  export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
-  export ZEPHYR_SDK_INSTALL_DIR=<$HOME/zephyr-sdk-0.16.8>
+ export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+ export ZEPHYR_SDK_INSTALL_DIR=<$HOME/zephyr-sdk-0.16.8>
 
-Applications for the ATMEVK-34xx-xxx-2 and ATMEVK-3430e-xxx-2 boards can be built, flashed, and debugged with the familiar `west build` and `west flash`.
+Applications for the Atmosic EVK boards can be built, flashed, and debugged using the familiar `west build` and `west flash`. 
 
-The atm34evk boards require at least two images to be built -- the SPE and the application.
+The atm34evk boards require at least two images to be built: the SPE and the application.  SPE is the Secure Processing Environment, and the application typically resides in the non-secure (NSPE) portion.
 
 The Atmosic SPE can be found under ``<WEST_TOPDIR>/openair/samples/spe``.
 
-.. _var_assignments:
+.. _variable assignments:
 
-In the remainder of this document, substitute for ``<SPE>``, ``<APP>``, ``<MCUBOOT>``, and ``<BOARD>`` appropriately.  For example::
+In the remainder of this document, substitute for ``<ZEPHYR_TOOLCHAIN_VARIANT>``, ``<ZEPHYR_SDK_INSTALL_DIR>``, ``<WEST_TOPDIR>``, ``<SPE>``, ``<APP>``, ``<APP_NAME>``, ``<MCUBOOT>``, ``<ATMWSTK>``, ``<BOARD>``, and ``<DEVICE_ID>`` appropriately.  For example::
 
+ <ZEPHYR_TOOLCHAIN_VARIANT>: zephyr
+ <ZEPHYR_SDK_INSTALL_DIR>: /absolute/path/to/zephyrSDK
  <WEST_TOPDIR>: /absolute/path/to/zephyrproject
  <SPE>: openair/samples/spe
- <APP>: zephyr/samples/hello_world
+ <APP>: zephyr/samples/bluetooth/peripheral
+ <APP_NAME>: APP Name for ISP section
  <MCUBOOT>: bootloader/mcuboot/boot/zephyr
- <BOARD>: ATMEVK-3425-PQK-2
+ <ATMWSTK>: PD50
+ <BOARD>: ATMEVK-3430e-WQN-2
+ <DEVICE_ID>: 900036960
 
-Alternatively, use any board from the boards_ list as ``<BOARD>``.
+* Use any board from the `board`_ list as ``<BOARD>``.
+* <DEVICE_ID> is the unique ID from the J-Link device used to program. For FTDI, the format will be ATRDIXXXX.
 
-Building the SPE
-================
+=====================
+Building and Flashing
+=====================
 
-Non-MCUboot Option
-------------------
+----------------------------
+Enabling a Random BD Address
+----------------------------
 
-If device firmware update (DFU) is not needed, the following simple option can be used::
+Non-production ATM34 EVKs in the field have no BD address programmed in the secure journal.  On such boards, upon loading a BLE application, an assert error occurs with a message appearing on the console similar to the one below::
+
+  ASSERT ERR(0) at <zephyrproject-root>/atmosic-private/modules/hal_atmosic/ATM34xx/drivers/eui/eui.c:129
+
+To avoid this error, the BLE application must be built with an option to allocate a random BD address.  This can be done by adding ``-DCONFIG_ATM_EUI_ALLOW_RANDOM=y`` to the build options.
+
+---------------
+Build and Flash
+---------------
+
+Applications can be built with MCUboot or without the MCUboot option. If a device firmware update (DFU) is not needed, you can choose the option without MCUboot. If you require DFU, then the MCUboot option is required.
+
+There are two main options as stated above:
+
+---------------------
+A. Non-MCUboot Option
+---------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using ATMWSTKLIB (PD50, CPD200, and "" where "" represents LL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Build the SPE:
+
+::
 
   west build -p -s <SPE> -b <BOARD> -d build/<BOARD>/<SPE>
 
+2. Build the Application:
 
-MCUboot Option
---------------
+Note: ``<BOARD>//ns`` is the non-secure variant of ``<BOARD>``.
 
-To build with MCUboot because, for example, DFU is needed, first build MCUboot::
+Build the app with the non-secure board variant and the SPE configured as follows::
 
-  west build -p -s <MCUBOOT> -b <BOARD>@mcuboot -d build/<BOARD>/<MCUBOOT> -- -DCONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256=y -DCONFIG_DEBUG=n -DCONFIG_BOOT_MAX_IMG_SECTORS=512 -DDTC_OVERLAY_FILE="<WEST_TOPDIR>/zephyr/boards/atmosic/atm34evk/<BOARD>_mcuboot_bl.overlay"
+  west build -p -s <APP> -b <BOARD>//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\" -DCONFIG_ATMWSTKLIB=\"<ATMWSTK>\" -DCONFIG_ATM_EUI_ALLOW_RANDOM=y
+
+Passing the path to the SPE is for linking in the non-secure-callable veneer file generated in building the SPE.
+
+With this approach, each built image has to be flashed separately.  Optionally, build a single merged image by enabling ``CONFIG_MERGE_SPE_NSPE``, thereby minimizing the flashing steps::
+
+  west build -p -s <APP> -b <BOARD>//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\" -DCONFIG_ATMWSTKLIB=\"<ATMWSTK>\" -DCONFIG_ATM_EUI_ALLOW_RANDOM=y -DCONFIG_MERGE_SPE_NSPE=y
+
+3. Flashing the SPE and the Application:
+
+Atmosic provides a mechanism to increase the legacy programming time called FAST LOAD. Apply the option ``--fast_load`` to enable the FAST LOAD.
+
+Flash the SPE and the application separately if ``CONFIG_MERGE_SPE_NSPE`` was not enabled::
+
+  west flash --device=<DEVICE_ID> --jlink --fast_load --verify -d build/<BOARD>/<SPE> --noreset
+  west flash --device=<DEVICE_ID> --jlink --fast_load --verify -d build/<BOARD>_ns/<APP>
+
+Alternatively, if ``CONFIG_MERGE_SPE_NSPE`` was enabled in building the application, the first step (programming the SPE) can be skipped.
+
+-----------------
+B. MCUboot Option
+-----------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using ATMWSTKLIB (PD50, CPD200, and "" where "" represents LL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _MCUboot option:
+
+1. Build the MCUboot and the SPE:
+
+To build with MCUboot, for example, DFU is needed, first build MCUboot::
+
+  west build -p -s <MCUBOOT> -b <BOARD>@mcuboot -d build/<BOARD>/<MCUBOOT> -- -DCONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256=y -DCONFIG_BOOT_MAX_IMG_SECTORS=512 -DDTC_OVERLAY_FILE="<WEST_TOPDIR>/zephyr/boards/atmosic/atm34evk/<BOARD>_mcuboot_bl.overlay"
 
 and then the Atmosic SPE::
 
   west build -p -s <SPE> -b <BOARD>@mcuboot -d build/<BOARD>/<SPE> -- -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_GENERATE_UNSIGNED_IMAGE=n -DDTS_EXTRA_CPPFLAGS=";"
 
-Note that make use of "board revision" to configure our board partitions to work for MCUboot.  On top of the "revisions," MCUboot currently needs an additional overlay that must be provided via the command line to give it the entire SRAM.
+Note that make use of "board revision" to configure our board partitions to work for MCUboot.  On top of the "revisions," MCUboot currently needs an additional overlay that must be provided through the command line to give it the entire SRAM.
 
+2. Build the Application with MCUboot and SPE:
 
-Building the Application
-========================
+Build the application with MCUboot and SPE as follows::
 
-Note: ``<BOARD>//ns`` is the non-secure variant of ``<BOARD>``.
+  west build -p -s <APP> -b <BOARD>@mcuboot//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_ATM_EUI_ALLOW_RANDOM=y -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_SIGNATURE_KEY_FILE=\"bootloader/mcuboot/root-ec-p256.pem\" -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\" -DCONFIG_ATMWSTKLIB=\"<ATMWSTK>\" -DDTS_EXTRA_CPPFLAGS=";" -DEXTRA_CONF_FILE="<WEST_TOPDIR>/openair/doc/dfu/overlay-bt-dfu.conf"
 
+This is somewhat of a non-standard workflow.  When passing ``-DCONFIG_BOOTLOADER_MCUBOOT=y`` on the application build command line, ``west`` automatically creates a signed, merged image (``zephyr.signed.{bin,hex}``), which is ultimately used by ``west flash`` to program the device.  The original application binaries are renamed with a ``.nspe`` suffixed to the file basename (``zephyr.{bin,hex,elf}`` renamed to ``zephyr.nspe.{bin,hex,elf}``) and are the ones that should be supplied to a debugger.
 
+3. Flashing the MCUboot, SPE, and the Application:
+
+Flash MCUboot
+
+Atmosic provides a mechanism to increase the legacy programming time called FAST LOAD. Apply the option ``--fast_load`` to enable the FAST LOAD.::
+
+   west flash --verify --device=<DEVICE_ID> --jlink --fast_load -d build/<BOARD>/<MCUBOOT> --noreset
+
+Note that adding ``--erase_flash`` is an option to erase Flash if needed.
+
+Flash the signed application image (merged with SPE)::
+
+   west flash --verify --device=<DEVICE_ID> --jlink --fast_load -d build/<BOARD>_ns/<APP>
+    
+---------------------------
 BLE Link Controller Options
 ---------------------------
+
 When building a Bluetooth application (``CONFIG_BT``) the BLE driver component provides a statically linked BLE link controller library.  The BLE link controller sits at the lowest layer of the Zephyr Bluetooth protocol stack.  Zephyr provides the upper Bluetooth Host stack that can interface with BLE link controllers that conform to the standard Bluetooth Host Controller Interface specification.
 
 To review how the statically linked controller library is used, please refer to the README.rst in modules/hal/atmosic/ATM34xx-5/drivers/ble/.
@@ -193,100 +242,24 @@ Note that developers cannot use ``CONFIG_BT_CTLR_*`` `flags`__ with the ATM34 pl
 .. _CONFIG_BT_CTLR_KCONFIGS: https://docs.zephyrproject.org/latest/kconfig.html#!%5ECONFIG_BT_CTLR
 __ CONFIG_BT_CTLR_KCONFIGS_
 
-
-Enabling A Random BD Address
-----------------------------
-
-Non-production ATM34 EVKs in the field have no BD address programmed in the secure journal.  On such boards, upon loading a BLE application, an assert error occurs with a message appearing on the console similar to the one below::
-
-  ASSERT ERR(0) at <zephyrproject-root>/atmosic-private/modules/hal_atmosic/ATM34xx/drivers/eui/eui.c:129
-
-To avoid this error, the BLE application must be built with an option to allocate a random BD address.  This can be done by adding ``-DCONFIG_ATM_EUI_ALLOW_RANDOM=y`` to the build options.
-
-
-Non-MCUboot Option
-------------------
-
-Build the app with the non-secure board variant and the SPE (see Non-MCUboot Option build above) configured as follows::
-
-  west build -p -s <APP> -b <BOARD>//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\"
-
-Passing the path to the SPE is for linking in the non-secure-callable veneer file generated in building the SPE.
-
-With this approach, each built image has to be flashed separately.  Optionally, build a single merged image by enabling ``CONFIG_MERGE_SPE_NSPE``, thereby minimizing the flashing steps::
-
-  west build -p -s <APP> -b <BOARD>//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\" -DCONFIG_MERGE_SPE_NSPE=y
-
-
-MCUboot Option
---------------
-
-Build the application with MCUboot and SPE as follows::
-
-  west build -p -s <APP> -b <BOARD>@mcuboot//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_SIGNATURE_KEY_FILE=\"bootloader/mcuboot/root-ec-p256.pem\" -DDTS_EXTRA_CPPFLAGS=";" -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\"
-
-This is somewhat of a non-standard workflow.  When passing ``-DCONFIG_BOOTLOADER_MCUBOOT=y`` on the application build command line, ``west`` automatically creates a singed, merged image (``zephyr.signed.{bin,hex}``), which is ultimately used by ``west flash`` to program the device.  The original application binaries are renamed with a ``.nspe`` suffixed to the file basename (``zephyr.{bin,hex,elf}`` renamed to ``zephyr.nspe.{bin,hex,elf}``) and are the ones that should be supplied to a debugger.
-
-.. _flashing:
-
-Flashing
-========
-
-``west flash`` is used to program a device with the necessary images, often only built as described above and sometimes also with a pre-built library provided as an ELF binary.
-
-In this section, substitute ``<DEVICE_ID>`` with the serial for the Atmosic interface board used.  For an atmevk34 board, this is typically a J-Link serial, but it can also be an FTDI serial of the form ``ATRDIXXXX``.  For a J-Link board, pass the ``--jlink`` option to the flash runner as in ``west flash --jlink ...``.
-
-The following subsections describe how to flash a device with and without MCUboot option.
-
-
-Fast-Load Option
-----------------
-Atmosic provides a mechanism to increase the legacy programming time called FAST LOAD. Apply the option ``--fast_load`` to enable the FAST LOAD. For Example::
-
-  west flash --device=<DEVICE_ID> --jlink --verify --skip-rebuild --fast_load -d build/<BOARD>_ns/<APP>
-
-
-Non-MCUboot Option
-------------------
-
-Flash the SPE and the application separately if ``CONFIG_MERGE_SPE_NSPE`` was not enabled::
-
-  west flash --device=<DEVICE_ID> --jlink --verify -d build/<BOARD>/<SPE> --noreset
-  west flash --device=<DEVICE_ID> --jlink --verify -d build/<BOARD>_ns/<APP>
-
-Alternatively, if ``CONFIG_MERGE_SPE_NSPE`` was enabled in building the application, the first step (programming the SPE) can be skipped.
-
-
-MCUboot Option
---------------
-
-First, flash MCUboot::
-
-   west flash --verify --device=<DEVICE_ID> --jlink -d build/<BOARD>/bootloader/mcuboot/boot/zephyr --erase_flash --noreset
-
-Then flash the singed application image (merged with SPE)::
-
-   west flash --verify --device=<DEVICE_ID> --jlink -d build/<BOARD>_ns/<APP>
-
-
+****************************************
 Atmosic In-System Programming (ISP) Tool
-========================================
+****************************************
 
-This SDK ships with a tool called Atmosic In-System Programming Tool
-(ISP) for bundling all three types of binaries -- OTP NVDS, flash NVDS, and
-flash -- into a single binary archive.
+This repository comes with a tool called Atmosic In-System Programming (ISP) Tool for bundling all three types of binaries -- OTP NVDS, flash NVDS, and flash -- into a single binary archive.
 
-+---------------+-----------------------------------------------------+
-|  Binary Type  |  Description                                        |
-+===============+=====================================================+
-|   .bin        |  binary file, contains flash or nvds data only.     |
-+---------------+-----------------------------------------------------+
++-------------+----------------------------------------------+
+| Binary Type | Description                                  |
++=============+==============================================+
+| .bin        | Binary file contains flash or NVDS data only |
++-------------+----------------------------------------------+
 
 The ISP tool, which is also shipped as a stand-alone package, can then be used
 to unpack the components of the archive and download them on a device.
 
+===================
 Python Requirements
--------------------
+===================
 
 Support atm isp archive tool has to install specific python protobuf version 3.20.3 first.
 
@@ -298,90 +271,70 @@ Or install with pip command directly::
 
   pip install grpcio-tools==1.47.0 protobuf==3.20.3
 
-Note: This install operation will uninstall current python protobuf packages and reinstall to python protobuf to be version 3.20.3.
+Note: This install operation will uninstall current python protobuf packages and reinstall python protobuf to version 3.20.3.
+Depending on installation, a symbolic link might be required or enable virtual environment::
+  
+  sudo ln -s $(which python3) /usr/bin/python
 
-West atm_arch commands
-----------------------
+======================
+West atm_arch Commands
+======================
 
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| command arguments                                                           |  Description                                               |
-+=============================================================================+============================================================+
-| -d, --debug                                                                 |  debug enabled, default false                              |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -s, --show                                                                  |  show archive                                              |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -b, --burn                                                                  |  burn archive                                              |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -a, --append                                                                |  append to input atm file                                  |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -a, --append                                                                |  append to input atm file                                  |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -i INPUT_ATM_FILE, --input_atm_file INPUT_ATM_FILE                          |  input atm file path                                       |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -o OUTPUT_ATM_FILE, --output_atm_file OUTPUT_ATM_FILE                       |  output atm file path                                      |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -p PARTITION_INFO_FILE, --partition_info_file PARTITION_INFO_FILE           |  partition info file path                                  |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -storage_data_file STOAGE_DATA_FILE, --storage_data_file STOAGE_DATA_FILE   |  storage data file path                                    |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -factory_data_file FACTORY_DATA_FILE, --factory_data_file FACTORY_DATA_FILE |  factory data file path                                    |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -spe_file SPE_FILE, --spe_file SPE_FILE                                     |  spe file path                                             |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -app_file APP_FILE, --app_file APP_FILE                                     |  application file path                                     |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -mcuboot_file MCUBOOT_FILE, --mcuboot_file MCUBOOT_FILE                     |  mcuboot file path                                         |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -atmwstk_file ATMWSTK_FILE, --atmwstk_file ATMWSTK_FILE                     |  atmwstk file path (.elf or .bin)                          |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
-| -openocd_pkg_root OPENOCD_PKG_ROOT, --openocd_pkg_root OPENOCD_PKG_ROOT     |  Path to directory where openocd and its scripts are found |
-+-----------------------------------------------------------------------------+------------------------------------------------------------+
+Please use ``west atm_arch --help`` for usage details. 
 
-Generate atm isp file
----------------------
+==================================
+Generate the .atm ISP Archive File
+==================================
 
-With MCUBOOT::
+* replace ``<APP_NAME>`` with the application name.
 
-  west atm_arch -o <BOARD>_beacon.atm \
-    -p build/<BOARD>_ns/<APP>/zephyr/partition_info.map \
-    --app_file build/<BOARD>_ns/<APP>/zephyr/zephyr.signed.bin \
-    --mcuboot_file build/<BOARD>/<MCUBOOT>/zephyr/zephyr.bin
+Note: Build the required images using Option A or B from "Building and Flashing" section above before proceeding below.
 
-Without MCUBOOT::
+With MCUboot::
 
-  west atm_arch -o <BOARD>_beacon.atm \
-    -p build/<BOARD>_ns/<APP>/zephyr/partition_info.map \
-    --app_file build/<BOARD>_ns/<APP>/zephyr/zephyr.bin \
-    --spe_file build/<BOARD>/<SPE>/zephyr/zephyr.bin
+  west atm_arch -o <BOARD>_<APP_NAME>.atm \
+  -p build/<BOARD>_ns/<APP>/zephyr/partition_info.map \
+  --app_file build/<BOARD>_ns/<APP>/zephyr/zephyr.signed.bin \
+  --mcuboot_file build/<BOARD>/<MCUBOOT>/zephyr/zephyr.bin
 
-Show and Flash atm isp file
----------------------------
+Without MCUboot::
 
-show commnad::
+  west atm_arch -o <BOARD>_<APP_NAME>.atm \
+  -p build/<BOARD>_ns/<APP>/zephyr/partition_info.map \
+  --app_file build/<BOARD>_ns/<APP>/zephyr/zephyr.bin \
+  --spe_file build/<BOARD>/<SPE>/zephyr/zephyr.bin
 
-  west atm_arch -i <BOARD>_beacon.atm --show
+========================================
+Show and Flash the .atm ISP Archive File
+========================================
 
-flash commnad::
+show command::
 
-  west atm_arch -i <BOARD>_beacon.atm \
-    --openocd_pkg_root atmosic-private/modules/hal_atmosic/ATM34xx \
-    --burn
+  west atm_arch -i <BOARD>_<APP_NAME>.atm --show
 
+flash command::
+
+  west atm_arch -i <BOARD>_<APP_NAME>.atm \
+  --openocd_pkg_root atmosic-private/modules/hal_atmosic/ATM34xx \
+  --burn
+
+**************************
 Programming Secure Journal
-==========================
+**************************
 
-The secure journal is a dedicated block of RRAM that has the property of being a write once, append-only data storage area that replaces traditional OTP memory. This region is located near the end of the RRAM storage array at 0x8F800– 0x8FEEF (1776 bytes).
+The secure journal is a dedicated block of RRAM that has the property of being a write-once, append-only data storage area that replaces traditional OTP memory. This region is located near the end of the RRAM storage array at 0x8F800– 0x8FEEF (1776 bytes).
 
-The secure journal data updates are controlled by a secure counter (address ratchet). The counter determines the next writable location at an offset from the start of the journal. An offset greater than the counter value is writable while any offset below or equal to the counter is locked from updates. The counter can only increment monotonically and cannot be rolled back. This provides the immutability of OTP as well as the flexibility to append new data items or overriding past items using a find latest TLV search.
+The secure journal data updates are controlled by a secure counter (address ratchet). The counter determines the next writable location at an offset from the start of the journal. An offset greater than the counter value is writable while any offset below or equal to the counter is locked from updates. The counter can only increment monotonically and cannot be rolled back. This provides the immutability of OTP as well as the flexibility to append new data items or override past items using a find the latest TLV search.
 
 The west extension command `secjrnl` is provided by the Atmosic HAL to allow for easy access and management of the secure journal on supported platforms.
 
-The tool provides a help command that describes all available operations via::
+The tool provides a help command that describes all available operations through::
 
  west secjrnl --help
 
+======================
 Dumping Secure Journal
-----------------------
+======================
 
 To dump the secure journal, run the command::
 
@@ -389,41 +342,41 @@ To dump the secure journal, run the command::
 
 This will dump all the TLV tags located in the secure journal.
 
-Appending a tag to the Secure Journal
--------------------------------------
+=====================================
+Appending a Tag to the Secure Journal
+=====================================
 
 To append a new tag to the secure journal::
 
  west secjrnl append --device <DEVICE_ID> --tag=<TAG_ID> --data=<TAG_DATA>
 
 * replace ``<TAG_ID>`` with the appropriate tag ID (Ex: ``0xde``)
-* replace ``<TAG_DATA>`` with the data for the tag. This is passed as a string. To pass raw byte values format it like so: '\xde\xad\xbe\xef'. As such, ``--data="data"`` will result in the same output as ``--data="\x64\x61\x74\x61``.
+* replace ``<TAG_DATA>`` with the data for the tag. This is passed as a string. To pass raw byte values format it like so: ``\0xde\0xad\0xbe\0xef``. As such, ``--data="data"`` will result in the same output as ``--data="\0x64\0x61\0x74\0x61``.
 
-The secure journal uses a find latest search algorithm to allow overrides. If the passed tag should NOT be overridden in the future, add the flag ``--locked`` to the append command. See following section for more information regarding locking a tag.
-
+The secure journal uses a find latest search algorithm to allow overrides. If the passed tag should NOT be overridden in the future, add the flag ``--locked`` to the append command. See the following section for more information regarding locking a tag.
 
 NOTE: The ``append`` command  does NOT increment the ratchet. The newly appended tag is still unprotected from erasing.
 
-Locking down a tag
-------------------
+==================
+Locking Down a Tag
+==================
 
 The secure journal provides a secure method of storing data while still providing options to update the data if needed. However, there are key data entries that should never be updated across the life of the device (e.g. UUID).
-This support is provided by software and can be enabled for a tag by passing ``--locked`` to the command when appending a new tag.
+This support is provided by software and can be enabled for a tag by passing the ``--locked`` to the command when appending a new tag.
 
-It is important to understand, once a tag is **locked** (and ratcheted), the specific tag can never be updated in the future - Appending a new tag of the same value will be ignored.
+It is important to understand, that once a tag is **locked** (and ratcheted), the specific tag can never be updated in the future - Appending a new tag of the same value will be ignored.
 
+==================================================
+Erasing Non-ratcheted Data From the Secure Journal
+==================================================
 
-Erasing non-ratcheted data from the Secure Journal
---------------------------------------------------
-
-Appended tags are not ratcheted down. this allows for prototyping with the secure journal before needing to lock down the TLVs. To support prototyping, you can erase non-ratcheted data easily via::
+Appended tags are not ratcheted down. This allows for prototyping with the secure journal before needing to lock down the TLVs. To support prototyping, you can erase non-ratcheted data easily through::
 
  west secjrnl erase --device <DEVICE_ID>
 
-
-
+=========================
 Ratcheting Secure Journal
--------------------------
+=========================
 
 To ratchet data, run the command::
 
@@ -431,101 +384,50 @@ To ratchet data, run the command::
 
 This will list the non-ratcheted tags and confirm that you want to ratchet the tags. Confirm by typing 'yes'.
 
-NOTE: This process is non reversible. Once ratcheted, that region of the secure journal cannot be modified.
+NOTE: This process is non-reversible. Once ratcheted, that region of the secure journal cannot be modified.
 
+**************************
 Viewing the Console Output
 **************************
 
+===============
 Linux and macOS
 ===============
 
-For a Linux host, monitor the console output with a favorite terminal
-program, such as::
+For Linux or macOS hosts, monitor the console output with a simple terminal program, such as::
 
-  screen /dev/ttyACM1 115200
+  screen /dev/ttyACM<#> 115200 or 
+  screen /dev/tty.usbmodem<UNIQUE_ID#> 115200
 
-On macOS, the serial console will be on USB port (``/dev/tty.usbmodem<12-digit device ID>[13]``).  Use the following command to find the port for serial console::
+On Linux OS, the serial console will appear as a USB device (``/dev/ttyACM<#>``).  Use the following 
+command to identify the correct port for the serial console. When the EVK is connected, two serial ports will be added. 
+The user will need to test each one to determine where the message output is displayed::
 
-  $ ls /dev/tty.usbmodem*
-  /dev/tty.usbmodem<DEVICE_ID>1
-  /dev/tty.usbmodem<DEVICE_ID>3
-  $
+ ls /dev/ttyACM*
+  /dev/ttyACM0
+  /dev/ttyACM1
 
+On macOS, the serial console will appear as a USB device (``/dev/tty.usbmodem<UNIQUE_ID#>``).  Use the following 
+command to identify the correct port for the serial console. When the EVK is connected, two serial ports will be added. 
+The user will need to test each one to determine where the message output is displayed::
 
+ ls /dev/tty.usbmodem*
+  /dev/tty.usbmodem<UNIQUE_ID1>
+  /dev/tty.usbmodem<UNIQUE_ID3>
+
+=======
 Windows
 =======
 
-Console output for current Atmosic ATM34xx goes to the JLink CDC UART
-serial port.  That is Interface 2 of J-Link OB USB on the Atmosic
-board.  In order to view the console output, use a serial terminal
-program such as PuTTY (available from
-https://www.chiark.greenend.org.uk/~sgtatham/putty) to connect to
-JLink CDC UART port generated by the interface 2 of J-Link OB USB
-with the baud rate set to 115200.
+The console output for the Atmosic ATM34xx is sent to the J-Link CDC UART port. When connected, two UART ports will be displayed. 
+The user must test each one to determine where the message output appears.
+To view the console output, use a serial terminal program such as PuTTY (available from
+https://www.chiark.greenend.org.uk/~sgtatham/putty) to connect to the J-Link CDC UART port. Set the UART configuration to 115200/N/8/1.
 
-If using PuTTY, open a session with the following three parameters:
-
-#. Serial line: <COM port> (see next paragraph)
-#. Speed: 115200
-#. Connection type: Serial
-
-A common way to determine <COM port> for parameter #1 above is to use
-the Windows Device Manager as follows.
-
-#. Under the "View" menu, choose "Devices by container"
-#. Under the container "J-Link", find "JLink CDC UART Port (COM<N>)", where <N> is some COM port sequence number
-
-Then use "COM<N>" for the serial line parameter in PuTTY.
-
-
+**********
 Zephyr DFU
-==========
+**********
 
-The steps for building and flashing will mostly remain the same as documented in the above sections.
-Any differences will be noted here.
+Please review the content for DFU Serial and OTA support at Zephyr_DFU_.
 
-For this section, use the following updated variable assignments/substitutions along with the ones provided `above`__::
-
-  APP=zephyr/samples/subsys/mgmt/mcumgr/smp_svr
-
-__ var_assignments_
-
-In Zephyr, DFU is possible using the ``mcumgr`` subsystem. This makes use of some of the features from MCUBoot in order to facilitate image uploading and swapping.
-In order to test this subsystem, Zephyr provides an SMP server sample that makes use of the subsystem to test performing Serial DFU and BLE OTA firmware updates.
-To actually perform the DFU, the ``mcumgr`` program can be used. Currently, this supports UART on all platforms and BLE on macOS and Linux (only Linux is tested currently for BLE).
-More information about the smp_svr sample and how to use the mcumgr utility can be found `here. <https://docs.zephyrproject.org/latest/samples/subsys/mgmt/mcumgr/smp_svr/README.html>`_
-
-A new overlay file has been provided named ``overlay-disable-stats.conf`` that saves around 3 kB by disabling ``taskstat`` and the stats subsystems if those features are not needed.
-
-To flash smp_svr follow the MCUBoot instructions from flashing_.
-When using BLE remember that the wireless stack must also be flashed.
-
-.. _serial_dfu:
-
-Building for Serial (UART)
---------------------------
-
-On Atmosic EVKs, only UART0 can be used to perform DFU, as UART1 RX is not connected by default.
-However, UART1 should be usable on a custom board design if it is connected.
-Special care will need to be made for BENIGN_BOOT if the default pins are used.
-
-By default the UART0 peripheral is not enabled, which will cause a build error.
-In order to enable UART0, please modify the boards DTS file and add ``status = "okay";`` to the ``&uart0`` block.
-
-When building smp_svr to support DFU over serial, the only change from a standard MCUBoot build is to make sure that the proper overlay configurations are applied ``-DOVERLAY_CONFIG="overlay-serial.conf;overlay-fs.conf;overlay-shell-mgmt.conf"``::
-
-  west build -p -s <APP> -b <BOARD>@mcuboot//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_SIGNATURE_KEY_FILE=\"bootloader/mcuboot/root-ec-p256.pem\" -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\" -DDTS_EXTRA_CPPFLAGS=";" -DOVERLAY_CONFIG="overlay-serial.conf;overlay-fs.conf;overlay-shell-mgmt.conf"
-
-Building for BLE
-----------------
-
-If building smp_svr using external flash, either the ``PD50LL`` or the ``CPD200`` or the ``LL`` wireless stack can be used. When using the ``PD50`` wireless stack, the following variable assignments/substitutions should be used::
-
-  ATMWSTKLIB=PD50
-
-When building smp_svr to support DFU over BLE, all images (MCUBoot, SPE, smp_svr) need to be built with ``-DDTS_EXTRA_CPPFLAGS="-DATMWSTKLIB=<ATMWSTK>;"`` (when using external flash, the ``-DDFU_IN_FLASH;`` option must also be present).
-smp_svr additionally needs to be configured to use the ATMWSTK ``-DCONFIG_ATM_SLEEP_ADJ=17`` and use the proper overlay configuration files ``-DEXTRA_CONF_FILE="overlay-bt.conf"`` (If Serial DFU support is also desired, then the overlay files from the serial_dfu_ section)::
-
-  west build -p -s <MCUBOOT> -b <BOARD>@mcuboot -d build/<BOARD>/<MCUBOOT> -- -DCONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256=y -DCONFIG_BOOT_MAX_IMG_SECTORS=512 -DDTC_OVERLAY_FILE="<WEST_TOPDIR>/zephyr/boards/atmosic/atm34evk/<BOARD>_mcuboot_bl.overlay" -DDTS_EXTRA_CPPFLAGS="-DATMWSTKLIB=<ATMWSTKLIB>;"
-  west build -p -s <SPE> -b <BOARD>@mcuboot -d build/<BOARD>/<SPE> -- -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_GENERATE_UNSIGNED_IMAGE=n -DDTS_EXTRA_CPPFLAGS="-DATMWSTKLIB=<ATMWSTKLIB>;"
-  west build -p -s <APP> -b <BOARD>@mcuboot//ns -d build/<BOARD>_ns/<APP> -- -DCONFIG_BOOTLOADER_MCUBOOT=y -DCONFIG_MCUBOOT_SIGNATURE_KEY_FILE=\"bootloader/mcuboot/root-ec-p256.pem\" -DCONFIG_SPE_PATH=\"<WEST_TOPDIR>/build/<BOARD>/<SPE>\" -DDTS_EXTRA_CPPFLAGS="-DATMWSTKLIB=<ATMWSTKLIB>;"  -DEXTRA_CONF_FILE="overlay-bt.conf" -DCONFIG_ATM_SLEEP_ADJ=17
+.. _Zephyr_DFU: https://github.com/Atmosic/openair/blob/HEAD/doc/dfu/dfu.rst
