@@ -35,8 +35,15 @@ LOG_MODULE_REGISTER(flash_atm, CONFIG_FLASH_LOG_LEVEL);
 #include "at_wrpr.h"
 #include "at_apb_qspi_regs_core_macro.h"
 
+#define CTR_FROM_FIXED_PARTITION(node_id) \
+	COND_CODE_1(DT_NODE_EXISTS(DT_MEM_FROM_FIXED_PARTITION(DT_GPARENT(node_id))), \
+		    (DT_PARENT(DT_MEM_FROM_FIXED_PARTITION(DT_GPARENT(node_id)))), \
+		    (COND_CODE_1(DT_NODE_EXISTS(DT_MEM_FROM_FIXED_PARTITION(node_id)), \
+				 (DT_PARENT(DT_MEM_FROM_FIXED_PARTITION(node_id))), \
+				 (DT_GPARENT(node_id)))))
+
 #define EXECUTING_IN_PLACE DT_NODE_HAS_COMPAT( \
-	DT_MTD_FROM_FIXED_PARTITION(DT_CHOSEN(zephyr_code_partition)), DT_DRV_COMPAT)
+	CTR_FROM_FIXED_PARTITION(DT_CHOSEN(zephyr_code_partition)), DT_DRV_COMPAT)
 
 #if defined(QSPI_REMOTE_AHB_SETUP_9__ESL__WRITE) && defined(CONFIG_SOC_FLASH_ATM_USE_BREAK_IN)
 // enable break in for SOCs that support erase/write breakin
@@ -487,6 +494,12 @@ static struct flash_driver_api const flash_atm_api = {
 #ifdef FLASH_PD
 static void notify_pm_state_entry(enum pm_state state)
 {
+	if (state >= PM_STATE_SUSPEND_TO_RAM) {
+		// pull-up before switching to low power state
+		PIN_PULLUP(DT_INST_PROP(0, d2_pin));
+		PIN_PULLUP(DT_INST_PROP(0, d3_pin));
+	}
+
 	if (state != PM_STATE_SOFT_OFF) {
 		return;
 	}
@@ -497,8 +510,18 @@ static void notify_pm_state_entry(enum pm_state state)
 	} WRPR_CTRL_POP();
 }
 
+static void notify_pm_state_exit(enum pm_state state)
+{
+	if (state >= PM_STATE_SUSPEND_TO_RAM) {
+		// clear pull-up before switching to active state
+		PIN_PULL_CLR(DT_INST_PROP(0, d2_pin));
+		PIN_PULL_CLR(DT_INST_PROP(0, d3_pin));
+	}
+}
+
 static struct pm_notifier notifier = {
 	.state_entry = notify_pm_state_entry,
+	.state_exit = notify_pm_state_exit,
 };
 
 static void macronix_flash_enable_pm(void)

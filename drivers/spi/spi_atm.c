@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Atmosic 2021-2024
+ * Copyright (C) Atmosic 2021-2025
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -156,11 +156,18 @@ static int spi_atm_execute_transaction(struct device const *dev, uint16_t clkdiv
 			       SPI_TRANSACTION_SETUP__CLKDIV__WRITE(clkdiv) |
 			       SPI_TRANSACTION_SETUP__RWB__MASK |
 			       SPI_TRANSACTION_SETUP__NUM_DATA_BYTES__WRITE(SPI_DATA_SIZE(data));
-	if (loopback) {
-		transaction |= SPI_TRANSACTION_SETUP__LOOPBACK__WRITE(1);
-	}
 
 	struct spi_atm_config const *config = DEV_CFG(dev);
+#ifdef SPI_TRANSACTION_SETUP__LOOPBACK__SET
+	if (loopback) {
+		SPI_TRANSACTION_SETUP__LOOPBACK__SET(transaction);
+	}
+#else
+	uint32_t spi_ctrl = config->base->CTRL;
+	SPI_CTRL__LOOPBACK__MODIFY(spi_ctrl, loopback);
+	config->base->CTRL = spi_ctrl;
+#endif
+
 	config->base->DATA_BYTES_LOWER = SPI_DATA_LOWER(data);
 	config->base->DATA_BYTES_UPPER = SPI_DATA_UPPER(data);
 	config->base->TRANSACTION_SETUP = transaction;

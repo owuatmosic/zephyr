@@ -43,6 +43,7 @@ LOG_MODULE_REGISTER(i2c_atm, CONFIG_I2C_LOG_LEVEL);
 #ifdef CONFIG_SOC_ATM34XX_2
 #define I2C_CLK_STRETCH_CHECK_REQUIRED 1
 #define I2C_MAX_WAIT_MS	5
+#define I2C_ATM_RETRY_COUNT 3
 #endif
 
 #ifdef I2C_CLOCK_CONTROL__CLK_STRETCH_EN__MASK
@@ -97,6 +98,33 @@ struct i2c_atm_config {
 #endif
 };
 
+static int i2c_atm_set_speed(struct device const *dev, uint32_t speed)
+{
+	static uint32_t const s2f_tbl[] = {[I2C_SPEED_STANDARD] = KHZ(100),
+					   [I2C_SPEED_FAST] = KHZ(400),
+					   [I2C_SPEED_FAST_PLUS] = MHZ(1),
+					   [I2C_SPEED_HIGH] = 0,
+					   [I2C_SPEED_ULTRA] = 0};
+
+	uint32_t hertz = s2f_tbl[speed];
+
+	if (!hertz) {
+		LOG_ERR("I2C speed not supported. Received: %" PRIu32, speed);
+		return -ENOTSUP;
+	}
+	// freq_scl = f_pclk / (4 * (clkdiv + 1))
+	uint32_t clkdiv = (at_clkrstgen_get_bp() / (hertz * 4)) - 1;
+	struct i2c_atm_config const *config = dev->config;
+	config->base->CLOCK_CONTROL = I2C(CLOCK_CONTROL__CLKDIV__WRITE(clkdiv));
+#ifdef I2C_CLK_STRETCH_SUPPORTED
+	if (config->clk_stretch_enabled) {
+		config->base->CLOCK_CONTROL |= I2C_CLOCK_CONTROL__CLK_STRETCH_EN__WRITE(1);
+	}
+#endif
+
+	return 0;
+}
+
 static int i2c_out_sync(struct device const *dev, i2c_head_t head, uint8_t val, i2c_tail_t tail)
 {
 	struct i2c_atm_config const *config = dev->config;
@@ -115,13 +143,13 @@ static int i2c_out_sync(struct device const *dev, i2c_head_t head, uint8_t val, 
 					  I2C(TRANSACTION_SETUP__TAIL__WRITE(tail)) |
 					  I2C(TRANSACTION_SETUP__HEAD__WRITE(head));
 
+	int i = 0;
 #ifdef I2C_TRANSACTION_STATUS__DONE__MASK
 	while (!(I2C_TRANSACTION_STATUS__DONE__READ(config->base->TRANSACTION_STATUS)))
 #else
 	while (config->base->TRANSACTION_STATUS & I2C(TRANSACTION_STATUS__RUNNING__MASK))
 #endif
 	{
-		int i = 0;
 		if (i++ > CONFIG_I2C_ATM_TIMEOUT) {
 			config->base->TRANSACTION_SETUP = 0;
 			LOG_ERR("I2C communication timed out: %#x",
@@ -267,6 +295,7 @@ static int i2c_atm_transfer(struct device const *dev, struct i2c_msg *msgs, uint
 			    uint16_t addr)
 {
 	struct i2c_atm_data *data = dev->data;
+	uint8_t attempts = 1;
 
 	if (data->config & I2C_ADDR_10_BITS) {
 		LOG_ERR("10-bit I2C address not supported. Received: %#x", addr);
@@ -277,16 +306,21 @@ static int i2c_atm_transfer(struct device const *dev, struct i2c_msg *msgs, uint
 
 #ifdef I2C_CLK_STRETCH_CHECK_REQUIRED
 	struct i2c_atm_config const *config = dev->config;
-	if (config->clk_stretch_enabled && !config->check_clk_stretch()) {
-		LOG_ERR("I2C clock stretch check failed");
-		k_sem_give(&data->xfer_sem);
-		return -EIO;
+	if (config->clk_stretch_enabled) {
+		if (!config->check_clk_stretch()) {
+			LOG_ERR("I2C clock stretch check failed");
+			k_sem_give(&data->xfer_sem);
+			return -EIO;
+		}
+		attempts = I2C_ATM_RETRY_COUNT;
 	}
 #endif
 
 	/* Mask out unused address bits, and make room for R/W bit */
 	int ret = 0;
-	for (uint8_t i = 0; i < num_msgs; i++) {
+	uint8_t retry = 0;
+	do {
+	    for (uint8_t i = 0; i < num_msgs; i++) {
 		if ((msgs[i].flags & I2C_MSG_RW_MASK) == I2C_MSG_WRITE) {
 			ret = i2c_atm_write_msg(dev, addr, msgs[i], i);
 		} else {
@@ -294,39 +328,22 @@ static int i2c_atm_transfer(struct device const *dev, struct i2c_msg *msgs, uint
 		}
 
 		if (ret < 0) {
+			LOG_ERR("Transaction failed with status: %d", ret);
+#ifdef I2C_CLK_STRETCH_CHECK_REQUIRED
+			if (config->clk_stretch_enabled) {
+				WRPR_CTRL_SET(config->base, WRPR_CTRL__SRESET);
+				WRPR_CTRL_SET(config->base, WRPR_CTRL__CLK_ENABLE);
+				i2c_atm_set_speed(dev, config->speed);
+			}
+#endif
 			break;
 		}
-	}
+	    }
+	} while ((ret < 0) && (++retry < attempts));
 
 	k_sem_give(&data->xfer_sem);
 
 	return ret;
-}
-
-static int i2c_atm_set_speed(struct device const *dev, uint32_t speed)
-{
-	static uint32_t const s2f_tbl[] = {[I2C_SPEED_STANDARD] = KHZ(100),
-					   [I2C_SPEED_FAST] = KHZ(400),
-					   [I2C_SPEED_FAST_PLUS] = MHZ(1),
-					   [I2C_SPEED_HIGH] = 0,
-					   [I2C_SPEED_ULTRA] = 0};
-
-	uint32_t hertz = s2f_tbl[speed];
-
-	if (!hertz) {
-		LOG_ERR("I2C speed not supported. Received: %d", speed);
-		return -ENOTSUP;
-	}
-	uint32_t clkdiv = (at_clkrstgen_get_bp() / (hertz * 4)) - 1;
-	struct i2c_atm_config const *config = dev->config;
-	config->base->CLOCK_CONTROL = I2C(CLOCK_CONTROL__CLKDIV__WRITE(clkdiv));
-#ifdef I2C_CLK_STRETCH_SUPPORTED
-	if (config->clk_stretch_enabled) {
-		config->base->CLOCK_CONTROL |= I2C_CLOCK_CONTROL__CLK_STRETCH_EN__WRITE(1);
-	}
-#endif
-
-	return 0;
 }
 
 #ifdef PSEQ_CTRL0__I2C_LATCH_OPEN__MASK
