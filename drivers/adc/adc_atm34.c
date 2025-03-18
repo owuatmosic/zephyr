@@ -53,6 +53,23 @@ LOG_MODULE_REGISTER(adc_atm, CONFIG_ADC_LOG_LEVEL);
 #define GADC_WARMUP_CYCLES 3
 #define GADC_WAIT_AMOUNT   40
 
+/* Enumeration of GADC channels in SoC */
+typedef enum {
+	WATCH_CH_INVALID = 0,
+	WATCH_CH_VBATT = 1,
+	WATCH_CH_VSTORE = 2,
+	WATCH_CH_CORE = 3,
+	WATCH_CH_TEMP = 4,
+	WATCH_CH_PORT1_DIFF = 5,
+	WATCH_CH_PORT0_DIFF = 6,
+	WATCH_CH_PORT1_SINGLE_POS = 7,
+	WATCH_CH_PORT1_SINGLE_NEG = 8,
+	WATCH_CH_PORT0_SINGLE_POS = 9,
+	WATCH_CH_PORT0_SINGLE_NEG = 10,
+	WATCH_CH_LI_ION_BATT = 11,
+	WATCH_CH_CALIBRATION = 13,
+} GADC_WATCH_CHANNEL;
+
 /** List of GADC channels */
 typedef enum {
 	UNUSED = 0,
@@ -78,10 +95,6 @@ typedef enum {
 	PORT0_SINGLE_ENDED_1 = 10,
 	/// Li-ion channel.
 	LI_ION_BATT = 11,
-	/// Reserved,
-	GROUND,
-	/// Calibration
-	CALIBRATION,
 #ifdef GADC_GADC_CTRL__EXT_VDD1_SEL__SET
 	// P3 single-ended channel
 	PORT2_SINGLE_ENDED,
@@ -90,10 +103,12 @@ typedef enum {
 	// P9 single-ended channel
 	PORT4_SINGLE_ENDED,
 #endif
+	// Calibration - for internal use only
+	CALIBRATION,
 	/** Max channels */
 	CHANNEL_NUM_MAX,
 } GADC_CHANNEL_ID;
-#define CHANNEL_NUM_MAX_USER (CHANNEL_NUM_MAX - 2)
+#define CHANNEL_NUM_MAX_USER (CHANNEL_NUM_MAX - 1)
 
 typedef enum {
 	CH_TYPE_SINGLE_ENDED,
@@ -165,13 +180,12 @@ static gadc_gain_ext_t const gextmap[CHANNEL_NUM_MAX][GAIN_EXT_MAX] = {
 	{GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_END},
 	{GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_END},
 	{GAIN_EXT_HALF, GAIN_EXT_X1, GAIN_EXT_END},
-	{GAIN_EXT_EIGHTH, GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_X1, GAIN_EXT_END},
-	{GAIN_EXT_EIGHTH, GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_X1, GAIN_EXT_END},
 #ifdef GADC_GADC_CTRL__EXT_VDD1_SEL__SET
 	{GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_END},
 	{GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_END},
 	{GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_END},
 #endif
+	{GAIN_EXT_EIGHTH, GAIN_EXT_QUARTER, GAIN_EXT_HALF, GAIN_EXT_X1, GAIN_EXT_END},
 };
 
 static struct gadc_cal_s gcal;
@@ -262,21 +276,26 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 	CMSDK_GADC->INTERRUPT_CLEAR = 0;
 
 	// Set the gain and watch channel for the specified channel
-	GADC_CHANNEL_ID watch_ch = ch;
+	GADC_WATCH_CHANNEL watch_ch;
 	switch (ch) {
 	case VBATT: {
+		watch_ch = WATCH_CH_VBATT;
 		DGADC_GAIN_CONFIG0__CH1_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 	case VSTORE: {
+		watch_ch = WATCH_CH_VSTORE;
 		DGADC_GAIN_CONFIG0__CH2_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 	case CORE: {
+		watch_ch = WATCH_CH_CORE;
 		DGADC_GAIN_CONFIG0__CH3_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 	case TEMP: {
+		watch_ch = WATCH_CH_TEMP;
 		DGADC_GAIN_CONFIG0__CH4_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 	case PORT1_DIFFERENTIAL: {
+		watch_ch = WATCH_CH_PORT1_DIFF;
 #ifdef DGADC_GAIN_CONFIG1__CH5_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG1__CH5_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG1, gext[ch]);
 #else
@@ -284,6 +303,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 #endif
 	} break;
 	case PORT0_DIFFERENTIAL: {
+		watch_ch = WATCH_CH_PORT0_DIFF;
 #ifdef DGADC_GAIN_CONFIG1__CH6_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG1__CH6_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG1, gext[ch]);
 #else
@@ -291,6 +311,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 #endif
 	} break;
 	case PORT1_SINGLE_ENDED_0: {
+		watch_ch = WATCH_CH_PORT1_SINGLE_POS;
 #ifdef DGADC_GAIN_CONFIG1__CH7_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG1__CH7_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG1, gext[ch]);
 #else
@@ -298,6 +319,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 #endif
 	} break;
 	case PORT1_SINGLE_ENDED_1: {
+		watch_ch = WATCH_CH_PORT1_SINGLE_NEG;
 #ifdef DGADC_GAIN_CONFIG1__CH8_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG1__CH8_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG1, gext[ch]);
 #else
@@ -305,6 +327,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 #endif
 	} break;
 	case PORT0_SINGLE_ENDED_0: {
+		watch_ch = WATCH_CH_PORT0_SINGLE_POS;
 #ifdef DGADC_GAIN_CONFIG2__CH9_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG2__CH9_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG2, gext[ch]);
 #else
@@ -312,6 +335,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 #endif
 	} break;
 	case PORT0_SINGLE_ENDED_1: {
+		watch_ch = WATCH_CH_PORT0_SINGLE_NEG;
 #ifdef DGADC_GAIN_CONFIG2__CH10_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG2__CH10_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG2, gext[ch]);
 #else
@@ -319,6 +343,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 #endif
 	} break;
 	case LI_ION_BATT: {
+		watch_ch = WATCH_CH_LI_ION_BATT;
 #ifdef DGADC_GAIN_CONFIG2__CH11_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG2__CH11_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG2, gext[ch]);
 #else
@@ -333,6 +358,7 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 		WRPR_CTRL_POP();
 	} break;
 	case CALIBRATION: {
+		watch_ch = WATCH_CH_CALIBRATION;
 #ifdef DGADC_GAIN_CONFIG2__CH12_GAIN_SEL__MODIFY
 		DGADC_GAIN_CONFIG2__CH12_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG2, gext[ch]);
 #else
@@ -341,21 +367,22 @@ static void gadc_start_measurement(struct device const *dev, GADC_CHANNEL_ID ch)
 	} break;
 #ifdef GADC_GADC_CTRL__EXT_VDD1_SEL__SET
 	case PORT2_SINGLE_ENDED: {
-		watch_ch = CORE;
+		watch_ch = WATCH_CH_CORE;
 		DGADC_GAIN_CONFIG0__CH3_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 	case PORT3_SINGLE_ENDED: {
-		watch_ch = VSTORE;
+		watch_ch = WATCH_CH_VSTORE;
 		DGADC_GAIN_CONFIG0__CH2_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 	case PORT4_SINGLE_ENDED: {
-		watch_ch = VBATT;
+		watch_ch = WATCH_CH_VBATT;
 		DGADC_GAIN_CONFIG0__CH1_GAIN_SEL__MODIFY(CMSDK_GADC->GAIN_CONFIG0, gext[ch]);
 	} break;
 #endif
 	case UNUSED:
 	case CHANNEL_NUM_MAX:
 	default: {
+		watch_ch = WATCH_CH_INVALID;
 		LOG_ERR("Invalid channel: %d", ch);
 		ASSERT_ERR(0);
 	} break;
