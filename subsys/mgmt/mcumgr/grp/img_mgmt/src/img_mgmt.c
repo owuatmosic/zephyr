@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2018-2021 mcumgr authors
  * Copyright (c) 2022-2024 Nordic Semiconductor ASA
- * Copyright (c) 2023 Atmosic
  *
  * SPDX-License-Identifier: Apache-2.0
  */

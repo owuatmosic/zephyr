@@ -103,7 +103,6 @@ zephyr_library_sources_ifdef(CONFIG_I2C_STM32_V2
 	i2c_ll_stm32.c
 	)
 
-zephyr_library_sources_ifdef(CONFIG_I2C_ATM		i2c_atm.c)
 zephyr_library_sources_ifdef(CONFIG_RENESAS_RA_I2C_IIC i2c_renesas_ra_iic.c)
 
 zephyr_library_sources_ifdef(CONFIG_I2C_TEST		i2c_test.c)

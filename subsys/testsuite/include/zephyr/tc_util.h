@@ -215,9 +215,10 @@ static inline void print_nothing(const char *fmt, ...)
 	posix_exit(result); \
 } while (0)
 #elif defined(CONFIG_SOC_FAMILY_ATM) && defined(CONFIG_AUTO_TEST) && !defined(CONFIG_COVERAGE)
-#define TC_END_POST(result)						\
-	do {								\
-		TC_PRINT((result == TC_PASS) ? "\x04" : "\x03");	\
+#define TC_END_POST(result)                                                                        \
+	do {                                                                                       \
+		TC_PRINT((result == TC_PASS) ? "\x04" : "\x03");                                   \
+		k_sleep(K_MSEC(100));                                                              \
 	} while (1)
 #else
 #define TC_END_POST(result)
