@@ -26,7 +26,6 @@ def _import_runner_module(runner_name):
 
 _names = [
     # zephyr-keep-sorted-start
-    'atmisp',
     'blackmagicprobe',
     'bossac',
     'canopen_program',
