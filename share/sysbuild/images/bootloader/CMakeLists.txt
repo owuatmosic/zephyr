@@ -12,11 +12,12 @@ if(SB_CONFIG_BOOTLOADER_MCUBOOT)
   )
 
   # Set target board to ${BOARD}@${BOARD_REVISION} if revision contains
-  # "mcuboot" and qualifiers contain "ns".
+  # "mcuboot" and qualifiers contain "ns" or "no_TZ".
   if(DEFINED BOARD_REVISION AND DEFINED BOARD_QUALIFIERS)
     string(REGEX MATCH "mcuboot" revision_has_mcuboot "${BOARD_REVISION}")
     string(REGEX MATCH "ns" qualifies_has_ns "${BOARD_QUALIFIERS}")
-    if(revision_has_mcuboot AND qualifies_has_ns)
+    string(REGEX MATCH "no_TZ" qualifies_has_no_tz "${BOARD_QUALIFIERS}")
+    if(revision_has_mcuboot AND (qualifies_has_ns OR qualifies_has_no_tz))
       set(board_str ${BOARD}@${BOARD_REVISION}_bl)
       list(APPEND mcuboot_args BOARD ${board_str})
     endif()
