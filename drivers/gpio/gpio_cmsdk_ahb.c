@@ -188,6 +188,14 @@ static int cmsdk_ahb_gpio_get_config(const struct device *dev, uint32_t mask, gp
 	*flags |= (cfg->port->pullup_enable_set & mask) ? GPIO_PULL_UP : 0;
 
 	*flags |= (cfg->port->inenable_set & mask) ? GPIO_INPUT : 0;
+	if (!(cfg->port->intenset & mask)) {
+		*flags |= GPIO_INT_DISABLE;
+		return 0;
+	}
+	*flags |= (cfg->port->inttypeset & mask) ? GPIO_INT_MODE_EDGE : GPIO_INT_MODE_LEVEL;
+	*flags |= (((struct gpio_cmsdk_ahb_dev_data *)dev->data)->intboth & mask)
+		? GPIO_INT_TRIG_BOTH
+		: ((cfg->port->intpolset & mask) ? GPIO_INT_TRIG_HIGH : GPIO_INT_TRIG_LOW);
 #endif // CONFIG_SOC_FAMILY_ATM
 
 	return 0;
