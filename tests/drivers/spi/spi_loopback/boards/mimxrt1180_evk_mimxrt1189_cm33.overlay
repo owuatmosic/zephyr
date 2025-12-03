@@ -6,18 +6,13 @@
 
 /* To test this sample, connect J44.8 <-> J44.10 */
 
-/ {
-	chosen {
-		zephyr,sram = &dtcm;
-	};
-};
-
 &lpspi3 {
 	slow@0 {
 		compatible = "test-spi-loopback-slow";
 		reg = <0>;
 		spi-max-frequency = <500000>;
 	};
+
 	fast@0 {
 		compatible = "test-spi-loopback-fast";
 		reg = <0>;

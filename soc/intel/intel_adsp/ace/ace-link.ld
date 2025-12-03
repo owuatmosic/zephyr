@@ -301,6 +301,9 @@ SECTIONS {
     *(.fini.literal)
     KEEP(*(.fini))
     *(.gnu.version)
+
+#include <snippets-text-sections.ld>
+
 #include <zephyr/linker/kobject-text.ld>
     MMU_PAGE_ALIGN
     __text_region_end = .;
@@ -607,8 +610,5 @@ SECTIONS {
 #ifdef CONFIG_GEN_ISR_TABLES
 #include <zephyr/linker/intlist.ld>
 #endif
-
-#ifdef CONFIG_LLEXT
 #include <zephyr/linker/llext-sections.ld>
-#endif
 }

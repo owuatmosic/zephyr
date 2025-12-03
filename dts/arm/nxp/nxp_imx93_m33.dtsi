@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 NXP
+ * Copyright 2024-2025 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,6 +8,7 @@
 #include <zephyr/dt-bindings/clock/imx_ccm_rev2.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <mem.h>
+#include <freq.h>
 
 / {
 	cpus {
@@ -39,6 +40,14 @@
 			compatible = "nxp,imx-dtcm";
 			/* Reserve system TCM last 4K for M33 ROM. */
 			reg = <0x20000000 DT_SIZE_K(124)>;
+		};
+
+		mu1: mailbox@44220000 {
+			compatible = "nxp,mbox-imx-mu";
+			reg = <0x44220000 DT_SIZE_K(4)>;
+			interrupts = <21 0>;
+			#mbox-cells = <1>;
+			status = "disabled";
 		};
 
 		iomuxc: iomuxc@443c0000 {
@@ -156,6 +165,15 @@
 			prescaler = <16>;
 			#pwm-cells = <3>;
 			status = "disabled";
+		};
+
+		sar_adc1: adc@44530000 {
+			compatible = "nxp,sar-adc";
+			reg = <0x44530000 DT_SIZE_K(64)>;
+			interrupts = <219 0>;
+			status = "disabled";
+			#io-channel-cells = <1>;
+			clocks = <&ccm IMX_CCM_SAR_ADC1_CLK 0x0 0>;
 		};
 	};
 };

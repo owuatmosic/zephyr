@@ -3,9 +3,18 @@ if(CONFIG_LIBSBC_ENCODER OR CONFIG_LIBSBC_DECODER)
 zephyr_library_named(libsbc)
 zephyr_library_compile_options(-O3 -std=c11 -ffast-math -Wno-array-bounds)
 
-zephyr_compile_definitions(SBC_FOR_EMBEDDED_LINUX)
-zephyr_compile_definitions(SBC_NO_PCM_CPY_OPTION)
+zephyr_library_compile_definitions(SBC_FOR_EMBEDDED_LINUX)
+zephyr_library_compile_definitions(SBC_NO_PCM_CPY_OPTION)
 zephyr_library_sources(sbc.c)
+
+zephyr_include_directories(
+    ${ZEPHYR_LIBSBC_MODULE_DIR}/encoder/include
+  )
+
+zephyr_include_directories(
+  ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/include
+  ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/srce
+  )
 
 if(CONFIG_LIBSBC_ENCODER)
 zephyr_library_sources(
@@ -17,9 +26,6 @@ zephyr_library_sources(
   ${ZEPHYR_LIBSBC_MODULE_DIR}/encoder/srce/sbc_enc_coeffs.c
   ${ZEPHYR_LIBSBC_MODULE_DIR}/encoder/srce/sbc_encoder.c
   ${ZEPHYR_LIBSBC_MODULE_DIR}/encoder/srce/sbc_packing.c
-  )
-zephyr_include_directories(
-    ${ZEPHYR_LIBSBC_MODULE_DIR}/encoder/include
   )
 endif()
 
@@ -40,10 +46,6 @@ zephyr_library_sources(
   ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/srce/synthesis-8-generated.c
   ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/srce/synthesis-dct8.c
   ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/srce/synthesis-sbc.c
-  )
-zephyr_include_directories(
-  ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/include
-  ${ZEPHYR_LIBSBC_MODULE_DIR}/decoder/srce
   )
 endif()
 endif()

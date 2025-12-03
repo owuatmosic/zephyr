@@ -5,6 +5,7 @@
  */
 
 #include <mem.h>
+#include <freq.h>
 #include <zephyr/dt-bindings/clock/mcux_lpc_syscon_clock.h>
 #include <zephyr/dt-bindings/reset/nxp_syscon_reset_common.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
@@ -26,6 +27,26 @@
 				compatible = "arm,armv8m-mpu";
 				reg = <0xe000ed90 0x40>;
 			};
+		};
+	};
+
+	performance-states {
+		pstate_0: pstate-0 {
+			compatible = "nxp,mcxn-pstate";
+			load-threshold = <60>;
+			cpu-frequency-level = "high";
+		};
+
+		pstate_1: pstate-1 {
+			compatible = "nxp,mcxn-pstate";
+			load-threshold = <30>;
+			cpu-frequency-level = "medium";
+		};
+
+		pstate_2: pstate-2 {
+			compatible = "nxp,mcxn-pstate";
+			load-threshold = <0>;
+			cpu-frequency-level = "low";
 		};
 	};
 
@@ -497,7 +518,7 @@
 		compatible = "nxp,mcux-edma";
 		nxp,version = <4>;
 		dma-channels = <16>;
-		dma-requests = <120>;
+		dma-requests = <119>;
 
 		reg = <0x80000 0x1000>;
 		interrupts = <1 0>, <2 0>, <3 0>, <4 0>,
@@ -512,14 +533,12 @@
 		#dma-cells = <2>;
 		compatible = "nxp,mcux-edma";
 		nxp,version = <4>;
-		dma-channels = <16>;
-		dma-requests = <120>;
+		dma-channels = <8>;
+		dma-requests = <119>;
 
 		reg = <0xa0000 0x1000>;
 		interrupts = <77 0>, <78 0>, <79 0>, <80 0>,
-			     <81 0>, <82 0>, <83 0>, <84 0>,
-			     <85 0>, <86 0>, <87 0>, <88 0>,
-			     <89 0>, <90 0>, <91 0>, <92 0>;
+			     <81 0>, <82 0>, <83 0>, <84 0>;
 		no-error-irq;
 		status = "disabled";
 	};
@@ -536,7 +555,7 @@
 		flash: flash@0 {
 			compatible = "soc-nv-flash";
 			reg = <0 DT_SIZE_M(1)>;
-			erase-block-size = <8192>;
+			erase-block-size = <DT_SIZE_K(8)>;
 			/* MCXN23x ROM Flash API supports writing of 128B pages. */
 			write-block-size = <128>;
 		};
@@ -871,8 +890,8 @@
 		compatible = "nxp,lptmr";
 		reg = <0x4a000 0x1000>;
 		interrupts = <143 0>;
-		clock-frequency = <16000>;
-		prescaler = <1>;
+		clock-frequency = <DT_FREQ_K(16)>;
+		prescale-glitch-filter = <0>;
 		clk-source = <1>;
 		resolution = <32>;
 	};
@@ -881,8 +900,8 @@
 		compatible = "nxp,lptmr";
 		reg = <0x4b000 0x1000>;
 		interrupts = <144 0>;
-		clock-frequency = <16000>;
-		prescaler = <1>;
+		clock-frequency = <DT_FREQ_K(16)>;
+		prescale-glitch-filter = <0>;
 		clk-source = <1>;
 		resolution = <32>;
 	};
@@ -983,6 +1002,48 @@
 		nxp,tx-dma-channel = <2>;
 		nxp,rx-dma-channel = <3>;
 		status = "disabled";
+	};
+
+	micfil: micfil@10c000 {
+		compatible = "nxp,micfil";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupts = <48 0>;
+		reg = <0x10c000 0x1000>;
+		clocks = <&syscon MCUX_MICFIL_CLK>;
+		status = "disabled";
+		quality-mode = <1>;
+		cic-decimation-rate = <0>;
+		fifo-watermark = <15>;
+		sample-rate = <16000>;
+
+		channel0: micfil-channel@0 {
+			reg = <0>;
+			status = "disabled";
+			dc-remover-cutoff-freq = <2>;
+			decimation-filter-gain = <4>;
+		};
+
+		channel1: micfil-channel@1 {
+			reg = <1>;
+			status = "disabled";
+			dc-remover-cutoff-freq = <2>;
+			decimation-filter-gain = <4>;
+		};
+
+		channel2: micfil-channel@2 {
+			reg = <2>;
+			status = "disabled";
+			dc-remover-cutoff-freq = <2>;
+			decimation-filter-gain = <4>;
+		};
+
+		channel3: micfil-channel@3 {
+			reg = <3>;
+			status = "disabled";
+			dc-remover-cutoff-freq = <2>;
+			decimation-filter-gain = <4>;
+		};
 	};
 };
 

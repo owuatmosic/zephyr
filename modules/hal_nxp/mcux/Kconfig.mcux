@@ -8,7 +8,8 @@ config HAS_MCUX
 	bool
 	depends on SOC_FAMILY_KINETIS || SOC_FAMILY_NXP_IMX || SOC_FAMILY_LPC || \
 		SOC_FAMILY_NXP_S32 || SOC_FAMILY_NXP_IMXRT || SOC_FAMILY_NXP_RW || \
-		SOC_FAMILY_MCXN || SOC_FAMILY_MCXA || SOC_FAMILY_MCXW || SOC_FAMILY_MCXC
+		SOC_FAMILY_MCXN || SOC_FAMILY_MCXA || SOC_FAMILY_MCXW || SOC_FAMILY_MCXC || \
+		SOC_FAMILY_MCXE
 
 if	HAS_MCUX
 
@@ -34,12 +35,6 @@ config HAS_MCUX_SRC
 	help
 	  Set if the system reset controller (SRC) module is present in the
 	  SoC.
-
-config HAS_MCUX_SRC_V2
-	bool
-	help
-	  Set if version 2 of the system reset controller (SRC) module is
-	  present in the SoC.
 
 config HAS_MCUX_RDC
 	bool
@@ -86,5 +81,12 @@ config NXP_RF_IMU
 	select EVENTS
 	help
 	   RF_IMU adapter is needed for intercore messaging.
+
+config NXP_IEEE802154_MAC
+	bool "Narrowband Unit (15.4) using MAC intercore messaging"
+	depends on !IEEE802154
+	help
+	   If enabled, the NBU firmware used by the device will be use the 802.15.4
+	   MAC interface.
 
 endif # HAS_MCUX

@@ -447,7 +447,10 @@ void *nrf_wifi_wpa_supp_dev_init(void *supp_drv_if_ctx, const char *iface_name,
 				 struct zep_wpa_supp_dev_callbk_fns *supp_callbk_fns)
 {
 	struct nrf_wifi_vif_ctx_zep *vif_ctx_zep = NULL;
-	const struct device *device = DEVICE_DT_GET(DT_CHOSEN(zephyr_wifi));
+	/* Get device for each interface */
+	int if_idx = net_if_get_by_name(iface_name);
+	struct net_if *iface = net_if_get_by_index(if_idx);
+	const struct device *device = net_if_get_device(iface);
 
 	if (!device) {
 		LOG_ERR("%s: Interface %s not found", __func__, iface_name);
@@ -2696,7 +2699,19 @@ int nrf_wifi_wpa_supp_sta_add(void *if_priv, struct hostapd_sta_add_params *para
 	sta_info.sta_flags2.nrf_wifi_set = nrf_wifi_sta_flags_to_nrf(params->flags);
 	sta_info.sta_flags2.nrf_wifi_mask = sta_info.sta_flags2.nrf_wifi_set |
 		nrf_wifi_sta_flags_to_nrf(params->flags_mask);
+#ifdef CONFIG_NRF71_ON_IPC
+	if (params->ht_capabilities) {
+		memcpy(&sta_info.ht_capability,
+			   params->ht_capabilities,
+			   sizeof(sta_info.ht_capability));
+	}
 
+	if (params->vht_capabilities) {
+		memcpy(&sta_info.vht_capability,
+			   params->vht_capabilities,
+			   sizeof(sta_info.vht_capability));
+	}
+#else
 	if (params->ht_capabilities) {
 		memcpy(sta_info.ht_capability,
 			   params->ht_capabilities,
@@ -2708,6 +2723,7 @@ int nrf_wifi_wpa_supp_sta_add(void *if_priv, struct hostapd_sta_add_params *para
 			   params->vht_capabilities,
 			   sizeof(sta_info.vht_capability));
 	}
+#endif
 
 	memcpy(sta_info.mac_addr, params->addr, sizeof(sta_info.mac_addr));
 

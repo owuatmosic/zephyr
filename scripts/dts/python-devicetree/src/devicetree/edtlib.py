@@ -137,6 +137,17 @@ class Binding:
       from node properties. It can also be None for Binding objects created
       using 'child-binding:' with no compatible.
 
+    examples:
+      Provides a minimal example node illustrating the binding (optional).
+      Like this:
+
+      examples:
+        - |
+          / {
+              model = "This is a sample node";
+              ...
+          };
+
     prop2specs:
       A dict mapping property names to PropertySpec objects
       describing those properties' values.
@@ -291,6 +302,11 @@ class Binding:
         return self.raw.get('bus')
 
     @property
+    def examples(self) -> Optional[list[str]]:
+        "See the class docstring"
+        return self.raw.get('examples')
+
+    @property
     def buses(self) -> list[str]:
         "See the class docstring"
         if self.raw.get('bus') is not None:
@@ -420,7 +436,7 @@ class Binding:
         # Allowed top-level keys. The 'include' key should have been
         # removed by _load_raw() already.
         ok_top = {"title", "description", "compatible", "bus",
-                  "on-bus", "properties", "child-binding"}
+                  "on-bus", "properties", "child-binding", "examples"}
 
         # Descriptive errors for legacy bindings.
         legacy_errors = {
@@ -438,7 +454,7 @@ class Binding:
 
             if key not in ok_top and not key.endswith("-cells"):
                 _err(f"unknown key '{key}' in {self.path}, "
-                     "expected one of {', '.join(ok_top)}, or *-cells")
+                     f"expected one of {', '.join(ok_top)}, or *-cells")
 
         if "bus" in raw:
             bus = raw["bus"]
@@ -972,8 +988,7 @@ class Node:
 
     status:
       The node's status property value, as a string, or "okay" if the node
-      has no status property set. If the node's status property is "ok",
-      it is converted to "okay" for consistency.
+      has no status property set.
 
     read_only:
       True if the node has a 'read-only' property, and False otherwise
@@ -1198,9 +1213,6 @@ class Node:
             as_string = "okay"
         else:
             as_string = status.to_string()
-
-        if as_string == "ok":
-            as_string = "okay"
 
         return as_string
 
@@ -3312,8 +3324,7 @@ def _check_dt(dt: DT) -> None:
 
     # Check that 'status' has one of the values given in the devicetree spec.
 
-    # Accept "ok" for backwards compatibility
-    ok_status = {"ok", "okay", "disabled", "reserved", "fail", "fail-sss"}
+    ok_status = {"okay", "disabled", "reserved", "fail", "fail-sss"}
 
     for node in dt.node_iter():
         if "status" in node.props:

@@ -46,7 +46,7 @@ The GPIO controller provides the option to route external input pad interrupts
 to either the SIUL2 EIRQ or WKPU interrupt controllers, as supported by the SoC.
 By default, GPIO interrupts are routed to SIUL2 EIRQ interrupt controller,
 unless they are explicitly configured to be directed to the WKPU interrupt
-controller, as outlined in :zephyr_file:`dts/bindings/gpio/nxp,s32-gpio.yaml`.
+controller, as outlined in :zephyr_file:`dts/bindings/gpio/nxp,siul2-gpio.yaml`.
 
 To find information about which GPIOs are compatible with each interrupt
 controller, refer to the device reference manual.
@@ -296,6 +296,37 @@ For example, to erase and verify flash content:
 
    west flash -r trace32 --startup-args elfFile=build/zephyr/zephyr.elf loadTo=flash eraseFlash=yes verifyFlash=yes
 
+MCUboot
+=======
+
+This board supports app chain-loading using MCUboot.
+
+Build & Flash
+-------------
+
+To build MCUboot and the ``flash_shell`` sample application together and
+generate HEX files suitable for flashing, run:
+
+.. code-block:: console
+
+   west build -p -b mr_canhubk3/s32k344/mcuboot samples/drivers/flash_shell --sysbuild
+   west flash
+
+The resulting artifacts are:
+
+* MCUboot: ``build/mcuboot/zephyr/zephyr.hex``
+* App (unsigned): ``build/flash_shell/zephyr/zephyr.hex``
+
+Troubleshooting
+---------------
+
+    If MCUboot prints “Image in the primary slot is not valid” or stalls after
+    “Jumping to the first image slot”, the app was likely signed with a 512-byte header.
+    Re-sign with --header-size 0x400 and re-flash.
+
+    Do not add an IVT to MCUboot-chainloaded applications;
+    it’s only emitted for standalone/XIP images or MCUboot itself.
+
 Debugging
 =========
 
@@ -303,8 +334,7 @@ Run the ``west debug`` command to start a GDB session using SEGGER J-Link.
 Alternatively, run ``west debug -r trace32`` or ``west debug -r pyocd``
 to launch the Lauterbach TRACE32 or pyOCD software debugging interface respectively.
 
-.. include:: ../../common/board-footer.rst
-   :start-after: nxp-board-footer
+.. include:: ../../common/board-footer.rst.inc
 
 References
 **********

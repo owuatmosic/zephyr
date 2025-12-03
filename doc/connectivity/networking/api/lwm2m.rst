@@ -516,6 +516,10 @@ must be enabled separately and each resource needs their own storage.
   lwm2m_enable_cache(LWM2M_OBJ(IPSO_OBJECT_TEMP_SENSOR_ID, 0, SENSOR_VALUE_RID),
           temperature_cache, ARRAY_SIZE(temperature_cache));
 
+Applications can inspect the available space in a cached resource with
+:c:func:`lwm2m_cache_free_slots_get`, which returns the number of samples that
+can still be stored or a negative errno value if the query fails.
+
 LwM2M engine have room for four resources that have cache enabled. Limit can be increased by
 changing :kconfig:option:`CONFIG_LWM2M_MAX_CACHED_RESOURCES`. This affects a static memory usage of
 engine.
@@ -532,9 +536,9 @@ Read and Write operations
 Full content of data cache is written into a payload when any READ, SEND or NOTIFY operation
 internally reads the content of a given resource. This has a side effect that any read callbacks
 registered for a that resource are ignored when cache is enabled.
-Data is written into a cache when any of the ``lwm2m_set_*`` functions are called. To filter
-the data entering the cache, application may register a validation callback using
-:c:func:`lwm2m_register_validate_callback`.
+Data is written into a cache when any of the ``lwm2m_set_*`` functions are called. Applications can
+register a cache filter callback with :c:func:`lwm2m_set_cache_filter` to drop otherwise valid samples
+based on application-specific rules.
 
 Limitations
 ===========

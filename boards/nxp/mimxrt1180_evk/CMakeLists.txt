@@ -1,5 +1,5 @@
 #
-# Copyright 2024 NXP
+# Copyright 2024-2025 NXP
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -7,12 +7,23 @@
 zephyr_library()
 zephyr_library_sources(board.c)
 
+if(CONFIG_SOC_MIMXRT1189_CM33)
+zephyr_linker_sources(DTCM_SECTION cm33/dtcm.ld)
+endif()
+
+if(CONFIG_NXP_BOARD_SPECIFIC_MPU_SETTINGS)
+  if(CONFIG_SOC_MIMXRT1189_CM7)
+    zephyr_sources(cm7/mpu_regions.c)
+    zephyr_linker_sources(DTCM_SECTION cm7/dtcm.ld)
+  endif()
+endif()
+
 if(CONFIG_NXP_IMXRT_BOOT_HEADER)
   if(NOT ((DEFINED CONFIG_BOARD_MIMXRT1180_EVK_MIMXRT1189_CM33)
-	  OR (DEFINED CONFIG_BOARD_MIMXRT1180_EVK_MIMXRT1189_CM7)))
+    OR (DEFINED CONFIG_BOARD_MIMXRT1180_EVK_MIMXRT1189_CM7)))
     message(WARNING "It appears you are using the board definition for "
-     "the MIMXRT1180-EVK, but targeting a custom board. You may need to "
-     "update your flash configuration or device configuration data blocks")
+      "the MIMXRT1180-EVK, but targeting a custom board. You may need to "
+      "update your flash configuration or device configuration data blocks")
   endif()
   if(CONFIG_BOOT_FLEXSPI_NOR)
     # This flash configuration block may need modification if another

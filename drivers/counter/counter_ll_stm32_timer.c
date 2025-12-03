@@ -27,12 +27,12 @@ LOG_MODULE_REGISTER(counter_timer_stm32, CONFIG_COUNTER_LOG_LEVEL);
 #define TIMER_MAX_CH 4U
 
 /** Number of channels for timer by index. */
-#define NUM_CH(timx)					    \
-	(IS_TIM_CCX_INSTANCE(timx, TIM_CHANNEL_4) ? 4U :    \
-	 (IS_TIM_CCX_INSTANCE(timx, TIM_CHANNEL_3) ? 3U :   \
-	  (IS_TIM_CCX_INSTANCE(timx, TIM_CHANNEL_2) ? 2U :  \
-	   (IS_TIM_CCX_INSTANCE(timx, TIM_CHANNEL_1) ? 1U : \
-	    0))))
+#define NUM_CH(timx)				\
+	(IS_TIM_CC4_INSTANCE(timx) ? 4U :	\
+	 (IS_TIM_CC3_INSTANCE(timx) ? 3U :	\
+	  (IS_TIM_CC2_INSTANCE(timx) ? 2U :	\
+	   (IS_TIM_CC1_INSTANCE(timx) ? 1U :	\
+	    0U))))
 
 /** Channel to compare set function mapping. */
 static void(*const set_timer_compare[TIMER_MAX_CH])(TIM_TypeDef *,
@@ -369,7 +369,6 @@ static int counter_stm32_init_timer(const struct device *dev)
 	const struct counter_stm32_config *cfg = dev->config;
 	struct counter_stm32_data *data = dev->data;
 	TIM_TypeDef *timer = cfg->timer;
-	LL_TIM_InitTypeDef init;
 	const struct device *clk = DEVICE_DT_GET(STM32_CLOCK_CONTROL_NODE);
 	uint32_t tim_clk;
 	int r;
@@ -413,17 +412,27 @@ static int counter_stm32_init_timer(const struct device *dev)
 	cfg->irq_config_func(dev);
 
 	/* initialize timer */
-	LL_TIM_StructInit(&init);
+	LL_TIM_SetPrescaler(timer, cfg->prescaler);
+	LL_TIM_SetAutoReload(timer, counter_get_max_top_value(dev));
 
-	init.Prescaler = cfg->prescaler;
-	init.CounterMode = LL_TIM_COUNTERMODE_UP;
-	init.Autoreload = counter_get_max_top_value(dev);
-	init.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
-
-	if (LL_TIM_Init(timer, &init) != SUCCESS) {
-		LOG_ERR("Could not initialize timer");
-		return -EIO;
+	if (IS_TIM_COUNTER_MODE_SELECT_INSTANCE(timer)) {
+		LL_TIM_SetCounterMode(timer, LL_TIM_COUNTERMODE_UP);
 	}
+
+	if (IS_TIM_CLOCK_DIVISION_INSTANCE(timer)) {
+		LL_TIM_SetClockDivision(timer, LL_TIM_CLOCKDIVISION_DIV1);
+	}
+
+#ifdef IS_TIM_REPETITION_COUNTER_INSTANCE
+	if (IS_TIM_REPETITION_COUNTER_INSTANCE(timer)) {
+		LL_TIM_SetRepetitionCounter(timer, 0U);
+	}
+#endif
+
+	/* Generate an update event to reload the Prescaler
+	 * and the repetition counter value (if applicable) immediately
+	 */
+	LL_TIM_GenerateEvent_UPDATE(timer);
 
 	return 0;
 }
@@ -515,7 +524,7 @@ static DEVICE_API(counter, counter_stm32_driver_api) = {
 		}								\
 	} while (0)
 
-void counter_stm32_irq_handler(const struct device *dev)
+static void counter_stm32_irq_handler_cc(const struct device *dev)
 {
 	const struct counter_stm32_config *config = dev->config;
 	struct counter_stm32_data *data = dev->data;
@@ -534,13 +543,33 @@ void counter_stm32_irq_handler(const struct device *dev)
 		__fallthrough;
 	case 1U:
 		TIM_IRQ_HANDLE_CC(timer, 1);
+		__fallthrough;
+	default:
+		break;
 	}
+}
+
+static void counter_stm32_irq_handler_up(const struct device *dev)
+{
+	const struct counter_stm32_config *config = dev->config;
+	TIM_TypeDef *timer = config->timer;
 
 	/* TIM Update event */
 	if (LL_TIM_IsActiveFlag_UPDATE(timer) && LL_TIM_IsEnabledIT_UPDATE(timer)) {
 		LL_TIM_ClearFlag_UPDATE(timer);
 		counter_stm32_top_irq_handle(dev);
 	}
+}
+
+static void counter_stm32_irq_handler_brk_up_trg_com(const struct device *dev)
+{
+	counter_stm32_irq_handler_up(dev);
+}
+
+static void counter_stm32_irq_handler_global(const struct device *dev)
+{
+	counter_stm32_irq_handler_cc(dev);
+	counter_stm32_irq_handler_brk_up_trg_com(dev);
 }
 
 #define TIMER(idx)              DT_INST_PARENT(idx)
@@ -552,7 +581,7 @@ void counter_stm32_irq_handler(const struct device *dev)
 {										\
 	IRQ_CONNECT(DT_IRQ_BY_NAME(TIMER(index), name, irq),			\
 		    DT_IRQ_BY_NAME(TIMER(index), name, priority),		\
-		    counter_stm32_irq_handler, DEVICE_DT_INST_GET(index), 0);	\
+		    counter_stm32_irq_handler_##name, DEVICE_DT_INST_GET(index), 0);	\
 	irq_enable(DT_IRQ_BY_NAME(TIMER(index), name, irq));			\
 }
 
@@ -567,6 +596,10 @@ void counter_stm32_irq_handler(const struct device *dev)
 										  \
 	static void counter_##idx##_stm32_irq_config(const struct device *dev)	  \
 	{									  \
+		IF_ENABLED(DT_IRQ_HAS_NAME(TIMER(idx), up),			  \
+			(IRQ_CONNECT_AND_ENABLE_BY_NAME(idx, up)))		  \
+		IF_ENABLED(DT_IRQ_HAS_NAME(TIMER(idx), brk_up_trg_com),		  \
+			(IRQ_CONNECT_AND_ENABLE_BY_NAME(idx, brk_up_trg_com)))	  \
 		COND_CODE_1(DT_IRQ_HAS_NAME(TIMER(idx), cc),			  \
 			(IRQ_CONNECT_AND_ENABLE_BY_NAME(idx, cc)),		  \
 		(COND_CODE_1(DT_IRQ_HAS_NAME(TIMER(idx), global),		  \
@@ -591,7 +624,9 @@ void counter_stm32_irq_handler(const struct device *dev)
 		.pclken = pclken_##idx,						  \
 		.pclk_len = DT_NUM_CLOCKS(TIMER(idx)),				  \
 		.irq_config_func = counter_##idx##_stm32_irq_config,		  \
-		.irqn = DT_IRQN(TIMER(idx)),					  \
+		.irqn = COND_CODE_1(DT_IRQ_HAS_NAME(TIMER(idx), cc),		  \
+				    (DT_IRQ_BY_NAME(TIMER(idx), cc, irq)),	  \
+				    (DT_IRQ_BY_NAME(TIMER(idx), global, irq))),	  \
 		.reset = RESET_DT_SPEC_GET(TIMER(idx)),				  \
 	};									  \
 										  \

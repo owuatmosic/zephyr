@@ -52,6 +52,16 @@ COND_CODE_1(DT_NODE_EXISTS(DT_INST(1, ite_it8xxx2_usbpd)), (2), (1))
 #define CLK_DIV_HIGH_FIELDS(n) FIELD_PREP(GENMASK(7, 4), n)
 #define CLK_DIV_LOW_FIELDS(n)  FIELD_PREP(GENMASK(3, 0), n)
 
+#ifdef CONFIG_SOC_IT8XXX2_GPIO_Q_GROUP_SUPPORTED
+#define ELPM_BASE_ADDR         DT_REG_ADDR(DT_INST(0, ite_it8xxx2_power_elpm))
+#define ELPMF1_WAKE_UP_CTRL_3  0xF1
+#define FIRMWARE_CTRL_EN       BIT(1)
+#define FIRMWARE_CTRL_OUTPUT_H BIT(0)
+
+#define ELPMF5_INPUT_EN         0xF5
+#define XLPIN_INPUT_ENABLE_MASK GENMASK(5, 0)
+#endif /* CONFIG_SOC_IT8XXX2_GPIO_Q_GROUP_SUPPORTED */
+
 uint32_t chip_get_pll_freq(void)
 {
 	uint32_t pllfreq;
@@ -407,6 +417,22 @@ void soc_prep_hook(void)
 	IT8XXX2_GPIO_GPCRB3 = GPCR_PORT_PIN_MODE_INPUT;
 	IT8XXX2_GPIO_GPCRB4 = GPCR_PORT_PIN_MODE_INPUT;
 #endif
+
+#ifdef CONFIG_SOC_IT8XXX2_GPIO_Q_GROUP_SUPPORTED
+#if DT_HAS_COMPAT_STATUS_OKAY(ite_it8xxx2_power_elpm)
+	/* drive xlpout high and then enable elpm firmware control mode if
+	 * the elpm node is marked as okay.
+	 */
+	sys_write8(sys_read8(ELPM_BASE_ADDR + ELPMF1_WAKE_UP_CTRL_3) | FIRMWARE_CTRL_OUTPUT_H,
+		   ELPM_BASE_ADDR + ELPMF1_WAKE_UP_CTRL_3);
+	sys_write8(sys_read8(ELPM_BASE_ADDR + ELPMF1_WAKE_UP_CTRL_3) | FIRMWARE_CTRL_EN,
+		   ELPM_BASE_ADDR + ELPMF1_WAKE_UP_CTRL_3);
+#endif /* DT_HAS_COMPAT_STATUS_OKAY(ite_it8xxx2_power_elpm) */
+
+	/* set gpio-q group as gpio by default */
+	sys_write8(sys_read8(ELPM_BASE_ADDR + ELPMF5_INPUT_EN) & ~XLPIN_INPUT_ENABLE_MASK,
+		   ELPM_BASE_ADDR + ELPMF5_INPUT_EN);
+#endif /* CONFIG_SOC_IT8XXX2_GPIO_Q_GROUP_SUPPORTED */
 }
 
 static int ite_it8xxx2_init(void)

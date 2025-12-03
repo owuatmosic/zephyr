@@ -13,6 +13,7 @@
 	aliases {
 		/delete-property/ magn0;
 		/delete-property/ accel0;
+		i2s-codec-tx = &sai1;
 	};
 };
 
@@ -26,10 +27,10 @@
 		compatible = "nxp,imx-flexspi-nor";
 		size = <DT_SIZE_M(64*8)>;
 		reg = <0>;
-		spi-max-frequency = <133000000>;
+		spi-max-frequency = <DT_FREQ_M(133)>;
 		status = "okay";
 		jedec-id = [ef 60 20];
-		erase-block-size = <4096>;
+		erase-block-size = <DT_SIZE_K(4)>;
 		write-block-size = <1>;
 
 		partitions {
@@ -73,6 +74,14 @@
 &lpi2c5 {
 	/* FXOS accelerometer is not present in this board */
 	/delete-node/ fxos8700@1f;
+
+	audio_codec: wm8962@1a {
+		compatible = "wolfson,wm8962";
+		reg = <0x1a>;
+		clock-source = "MCLK";
+		clocks = <&ccm IMX_CCM_SAI1_CLK 0x2004 4>;
+		clock-names = "mclk";
+	};
 };
 
 /* Disable ethernet, as PHY is not supported */

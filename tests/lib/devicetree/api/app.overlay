@@ -38,9 +38,13 @@
 
 		test_pinctrl: pin-controller {
 			compatible = "vnd,pinctrl";
+
 			test_pincfg_a: pincfg-a {};
+
 			test_pincfg_b: pincfg-b {};
+
 			test_pincfg_c: pincfg-c {};
+
 			test_pincfg_d: pincfg-d {};
 		};
 
@@ -252,20 +256,24 @@
 			test_i2c_mux: i2c-mux@12 {
 				compatible = "vnd,i2c-mux";
 				reg = <0x12>;
+
 				i2c-mux-ctlr-1 {
 					compatible = "vnd,i2c-mux-controller";
 					#address-cells = <1>;
 					#size-cells = <0>;
+
 					test_muxed_i2c_dev_1: muxed-i2c-dev@10 {
 						compatible = "vnd,i2c-device";
 						status = "disabled";
 						reg = <0x10>;
 					};
 				};
+
 				i2c-mux-ctlr-2 {
 					compatible = "vnd,i2c-mux-controller";
 					#address-cells = <1>;
 					#size-cells = <0>;
+
 					test_muxed_i2c_dev_2: muxed-i2c-dev@10 {
 						compatible = "vnd,i2c-device";
 						status = "disabled";
@@ -655,10 +663,12 @@
 				val = <0>;
 				status = "okay";
 			};
+
 			test_child_b: child-b {
 				val = <1>;
 				status = "okay";
 			};
+
 			test_child_c: child-c {
 				val = <2>;
 				status = "disabled";
@@ -852,6 +862,7 @@
 			flash@20000000 {
 				compatible = "soc-nv-flash";
 				reg = <0x20000000 0x100>;
+
 				partitions {
 					compatible = "fixed-partitions";
 					#address-cells = <1>;
@@ -900,6 +911,31 @@
 				partition@6ff80 {
 					reg = <0x6ff80 0x80>;
 					label = "test-partition-2";
+				};
+			};
+		};
+
+		test_nvmem_consumer: test-nvmem-consumer {
+			compatible = "vnd,nvmem-consumer";
+			nvmem-cells = <&cell0>, <&cell10>;
+			nvmem-cell-names = "cell0", "cell10";
+		};
+
+		test-nvmem-provider {
+			nvmem-layout {
+				compatible = "fixed-layout";
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				cell0: cell@0 {
+					reg = <0x0 0x10>;
+					#nvmem-cell-cells = <0>;
+				};
+
+				cell10: cell@10 {
+					reg = <0x10 0x10>;
+					read-only;
+					#nvmem-cell-cells = <0>;
 				};
 			};
 		};

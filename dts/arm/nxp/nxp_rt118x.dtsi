@@ -54,7 +54,7 @@
 	/* USB PLL */
 	usbclk: usbpll-clock {
 		compatible = "fixed-clock";
-		clock-frequency = <24000000>;
+		clock-frequency = <DT_FREQ_M(24)>;
 		#clock-cells = <0>;
 	};
 };
@@ -62,6 +62,13 @@
 &peripheral {
 	#address-cells = <1>;
 	#size-cells = <1>;
+
+	anatop: anatop@4480000 {
+		compatible = "nxp,imx-anatop";
+		reg = <0x4480000 0x4000>;
+		#clock-cells = <4>;
+		#pll-clock-cells = <3>;
+	};
 
 	/*
 	 * Note that the offsets here are relative to the base address
@@ -85,6 +92,20 @@
 		status = "okay";
 	};
 
+	blkctrl_ns_aon: blkctrl_ns_aon@4210000 {
+		compatible = "nxp,imx-blkctrl-ns-aon";
+		reg = <0x4210000 0x4000>;
+		status = "okay";
+		#pinmux-cells = <2>;
+	};
+
+	blkctrl_wakeup: blkctrl_wakeup@2420000 {
+		compatible = "nxp,imx-blkctrl-wakeup";
+		reg = <0x2420000 0x4000>;
+		status = "okay";
+		#pinmux-cells = <2>;
+	};
+
 	ccm: clock-controller@4450000 {
 		compatible = "nxp,imx-ccm-rev2";
 		reg = <0x4450000 0x4000>;
@@ -92,7 +113,7 @@
 
 		lpo: lpo32k {
 			compatible = "fixed-clock";
-			clock-frequency = <32000>;
+			clock-frequency = <DT_FREQ_K(32)>;
 			#clock-cells = <0>;
 		};
 	};
@@ -335,7 +356,7 @@
 		compatible = "nxp,imx-gpt";
 		reg = <0x46c0000 0x4000>;
 		interrupts = <209 0>;
-		gptfreq = <240000000>;
+		gptfreq = <DT_FREQ_M(240)>;
 		clocks = <&ccm IMX_CCM_GPT1_CLK 0x41 0>;
 		status = "disabled";
 	};
@@ -344,7 +365,7 @@
 		compatible = "nxp,imx-gpt";
 		reg = <0x2ec0000 0x4000>;
 		interrupts = <210 0>;
-		gptfreq = <240000000>;
+		gptfreq = <DT_FREQ_M(240)>;
 		clocks = <&ccm IMX_CCM_GPT2_CLK 0x41 0>;
 	};
 
@@ -676,6 +697,7 @@
 			reg-names = "port", "pfconfig";
 			mac-index = <0>;
 			si-index = <0>;
+			ptp-clock = <&netc_ptp_clock0>;
 			status = "disabled";
 		};
 
@@ -687,6 +709,13 @@
 			mac-index = <1>;
 			si-index = <1>;
 			phy-connection-type = "internal";
+			status = "disabled";
+		};
+
+		netc_ptp_clock0: ptp_clock@60b80000 {
+			compatible = "nxp,netc-ptp-clock";
+			reg = <0x60b80000 0x10000>;
+			clocks = <&ccm IMX_CCM_NETC_CLK 0x0 0>;
 			status = "disabled";
 		};
 
@@ -713,24 +742,28 @@
 			switch_port0: switch_port@0 {
 				compatible = "zephyr,dsa-port";
 				reg = <0>;
+				ptp-clock = <&netc_ptp_clock0>;
 				status = "disabled";
 			};
 
 			switch_port1: switch_port@1 {
 				compatible = "zephyr,dsa-port";
 				reg = <1>;
+				ptp-clock = <&netc_ptp_clock0>;
 				status = "disabled";
 			};
 
 			switch_port2: switch_port@2 {
 				compatible = "zephyr,dsa-port";
 				reg = <2>;
+				ptp-clock = <&netc_ptp_clock0>;
 				status = "disabled";
 			};
 
 			switch_port3: switch_port@3 {
 				compatible = "zephyr,dsa-port";
 				reg = <3>;
+				ptp-clock = <&netc_ptp_clock0>;
 				status = "disabled";
 			};
 
@@ -885,8 +918,8 @@
 		compatible = "nxp,lptmr";
 		reg = <0x4300000 0x1000>;
 		interrupts = <18 0>;
-		clock-frequency = <80000000>;
-		prescaler = <1>;
+		clock-frequency = <DT_FREQ_M(80)>;
+		prescale-glitch-filter = <0>;
 		clk-source = <0>;
 		resolution = <32>;
 		status = "disabled";
@@ -896,8 +929,8 @@
 		compatible = "nxp,lptmr";
 		reg = <0x24d0000 0x1000>;
 		interrupts = <67 0>;
-		clock-frequency = <80000000>;
-		prescaler = <1>;
+		clock-frequency = <DT_FREQ_M(80)>;
+		prescale-glitch-filter = <0>;
 		clk-source = <0>;
 		resolution = <32>;
 		status = "disabled";
@@ -907,8 +940,8 @@
 		compatible = "nxp,lptmr";
 		reg = <0x2cd0000 0x1000>;
 		interrupts = <150 0>;
-		clock-frequency = <80000000>;
-		prescaler = <1>;
+		clock-frequency = <DT_FREQ_M(80)>;
+		prescale-glitch-filter = <0>;
 		clk-source = <0>;
 		resolution = <32>;
 		status = "disabled";
@@ -1114,6 +1147,12 @@
 		};
 	};
 
+	src: reset-controller@44460000 {
+		compatible = "nxp,imx-src-rev2";
+		reg = <0x44460000 0xa4>;
+		status = "okay";
+	};
+
 	tpm1: pwm@4310000 {
 		compatible = "nxp,kinetis-tpm";
 		reg = <0x4310000 0x88>;
@@ -1208,8 +1247,8 @@
 		clocks = <&ccm IMX_CCM_USDHC1_CLK 0 0>;
 		max-current-330 = <1020>;
 		max-current-180 = <1020>;
-		max-bus-freq = <208000000>;
-		min-bus-freq = <400000>;
+		max-bus-freq = <DT_FREQ_M(208)>;
+		min-bus-freq = <DT_FREQ_K(400)>;
 	};
 
 	usdhc2: memory-controller@2860000 {
@@ -1220,8 +1259,8 @@
 		clocks = <&ccm IMX_CCM_USDHC2_CLK 0 0>;
 		max-current-330 = <1020>;
 		max-current-180 = <1020>;
-		max-bus-freq = <208000000>;
-		min-bus-freq = <400000>;
+		max-bus-freq = <DT_FREQ_M(208)>;
+		min-bus-freq = <DT_FREQ_K(400)>;
 	};
 
 	edma3: dma-controller@4000000 {
@@ -1448,6 +1487,114 @@
 		compatible = "nxp,tmpsns";
 		status = "disabled";
 	};
+
+	sai1: sai@43b0000 {
+		compatible = "nxp,mcux-i2s";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#pinmux-cells = <2>;
+		reg = <0x43b0000 0x4000>;
+		clocks = <&ccm IMX_CCM_SAI1_CLK 0x2004 4>;
+		/* Source from audio PLL */
+		clock-mux = <2>;
+		pre-div = <0>;
+		podf = <12>;
+		pll-clocks = <&anatop 0 0 0>,
+			     <&anatop 0 0 32>,
+			     <&anatop 0 0 1>,
+			     <&anatop 0 0 768>,
+			     <&anatop 0 0 1000>;
+		pll-clock-names = "src", "lp", "pd", "num", "den";
+		pinmuxes = <&blkctrl_ns_aon 0x20 0x100>;
+		interrupts = <45 0>;
+		nxp,tx-channel = <1>;
+		dmas = <&edma3 0 22>, <&edma3 0 21>;
+		dma-names = "rx", "tx";
+		nxp,tx-dma-channel = <0>;
+		nxp,rx-dma-channel = <1>;
+		status = "disabled";
+	};
+
+	sai2: sai@2bb0000 {
+		compatible = "nxp,mcux-i2s";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#pinmux-cells = <2>;
+		reg = <0x2bb0000 0x4000>;
+		clocks = <&ccm IMX_CCM_SAI2_CLK 0x2084 4>;
+		/* Source from audio PLL */
+		clock-mux = <2>;
+		pre-div = <0>;
+		podf = <12>;
+		pll-clocks = <&anatop 0 0 0>,
+			     <&anatop 0 0 32>,
+			     <&anatop 0 0 1>,
+			     <&anatop 0 0 768>,
+			     <&anatop 0 0 1000>;
+		pll-clock-names = "src", "lp", "pd", "num", "den";
+		pinmuxes = <&blkctrl_wakeup 0x38 0x100>;
+		interrupts = <198 0>;
+		nxp,tx-channel = <1>;
+		dmas = <&edma4 0 181>, <&edma4 0 180>;
+		dma-names = "rx", "tx";
+		nxp,tx-dma-channel = <3>;
+		nxp,rx-dma-channel = <4>;
+		status = "disabled";
+	};
+
+	sai3: sai@2bc0000 {
+		compatible = "nxp,mcux-i2s";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#pinmux-cells = <2>;
+		reg = <0x2bc0000 0x4000>;
+		clocks = <&ccm IMX_CCM_SAI3_CLK 0x2104 4>;
+		/* Source from audio PLL */
+		clock-mux = <2>;
+		pre-div = <0>;
+		podf = <12>;
+		pll-clocks = <&anatop 0 0 0>,
+			     <&anatop 0 0 32>,
+			     <&anatop 0 0 1>,
+			     <&anatop 0 0 768>,
+			     <&anatop 0 0 1000>;
+		pll-clock-names = "src", "lp", "pd", "num", "den";
+		pinmuxes = <&blkctrl_wakeup 0x3c 0x100>;
+		interrupts = <199 0>;
+		nxp,tx-channel = <1>;
+		dmas = <&edma4 0 183>, <&edma4 0 182>;
+		dma-names = "rx", "tx";
+		nxp,tx-dma-channel = <5>;
+		nxp,rx-dma-channel = <6>;
+		status = "disabled";
+	};
+
+	sai4: sai@2bd0000 {
+		compatible = "nxp,mcux-i2s";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#pinmux-cells = <2>;
+		reg = <0x2bd0000 0x4000>;
+		clocks = <&ccm IMX_CCM_SAI4_CLK 0x2184 6>;
+		/* Source from audio PLL */
+		clock-mux = <2>;
+		pre-div = <0>;
+		podf = <12>;
+		pll-clocks = <&anatop 0 0 0>,
+			     <&anatop 0 0 32>,
+			     <&anatop 0 0 1>,
+			     <&anatop 0 0 768>,
+			     <&anatop 0 0 1000>;
+		pll-clock-names = "src", "lp", "pd", "num", "den";
+		pinmuxes = <&blkctrl_wakeup 0x40 0x100>;
+		interrupts = <154 0>;
+		nxp,tx-channel = <1>;
+		dmas = <&edma4 0 185>, <&edma4 0 184>;
+		dma-names = "rx", "tx";
+		nxp,tx-dma-channel = <0>;
+		nxp,rx-dma-channel = <8>;
+		status = "disabled";
+	};
 };
 
 &flexspi {
@@ -1475,13 +1622,19 @@
 	ocram1: memory@0 {
 		compatible = "zephyr,memory-region", "mmio-sram";
 		zephyr,memory-region = "OCRAM1";
-		/* OCRAM1 first 16K access is blocked by TRDC */
-		reg = <0x0 DT_SIZE_K(496)>;
+		reg = <0x0 DT_SIZE_K(512)>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		ocram1_available: memory@4000 {
+			/* OCRAM1 first 16K access is blocked by TRDC */
+			reg = <0x0 DT_SIZE_K(496)>;
+		};
 	};
 
-	ocram2: memory@7c000 {
+	ocram2: memory@80000 {
 		compatible = "zephyr,memory-region", "mmio-sram";
 		zephyr,memory-region = "OCRAM2";
-		reg = <0x7c000 DT_SIZE_K(256)>;
+		reg = <0x80000 DT_SIZE_K(256)>;
 	};
 };

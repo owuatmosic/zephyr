@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NXP
+ * Copyright 2018, 2025 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -22,6 +22,7 @@
 		watchdog0 = &wdog0;
 		sdhc0 = &usdhc1;
 		mcuboot-button0 = &user_button;
+		rtc = &counter_rtc;
 	};
 
 	chosen {
@@ -98,11 +99,6 @@
 		};
 	};
 
-	lvgl_pointer {
-		compatible = "zephyr,lvgl-pointer-input";
-		input = <&ft5336>;
-	};
-
 	arduino_header: connector {
 		compatible = "arduino-header-r3";
 		#gpio-cells = <2>;
@@ -168,10 +164,10 @@ nxp_parallel_i2c: &lpi2c1 {};
 		compatible = "nxp,imx-flexspi-nor";
 		size = <DT_SIZE_M(8 * 8)>;
 		reg = <0>;
-		spi-max-frequency = <104000000>;
+		spi-max-frequency = <DT_FREQ_M(104)>;
 		status = "okay";
 		jedec-id = [9d 70 17];
-		erase-block-size = <4096>;
+		erase-block-size = <DT_SIZE_K(4)>;
 		write-block-size = <1>;
 
 		partitions {
@@ -363,3 +359,7 @@ zephyr_udc0: &usb1 {
 dvp_fpc24_i2c: &lpi2c1 {};
 
 dvp_fpc24_interface: &csi {};
+
+&counter_rtc {
+	status = "okay";
+};
